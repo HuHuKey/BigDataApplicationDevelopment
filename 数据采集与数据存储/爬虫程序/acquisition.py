@@ -1,7 +1,17 @@
+import pymongo
 import requests
 from bs4 import BeautifulSoup
 import time
 import re
+from pymongo import MongoClient
+def connect_database(goods):
+    # 连接MongoDB数据库
+    client = MongoClient("mongodb://localhost:27017/")
+    # 选择数据库
+    db = client["jd"]
+    # 选择集合（表）
+    collection = db[goods]
+    return collection
 
 # 获取URL页面
 def getHTMLText(url, code='utf-8'):
@@ -56,9 +66,10 @@ def parsePage(ilt, html):
             # 产品单价
             priceInfo = item.find('div', attrs={'class': 'p-price'})
             price = priceInfo.find('strong').text
-            if (price == '￥'):
-                price = '￥' + priceInfo.find('strong')['data-price']
+            # if (price == '￥'):
+            #     price = '￥' + priceInfo.find('strong')['data-price']
             product_info['product_price'] = price
+            price_data = str(price).replace("￥",'')
             # 销售数量（京东页面没有直接提供，这里暂时设为None，可以尝试从其他途径获取）
             comment_info = item.find('div', attrs={'class': 'p-commit'})
             if comment_info:
@@ -87,8 +98,7 @@ def parsePage(ilt, html):
             else:
                 product_info['shop_name'] = "未知"
             # 销售总额
-            price = float(priceInfo.find('strong')['data-price'])
-            product_info['total_sales'] = product_info['sale_count'] * price
+            product_info['total_sales'] = round(product_info['sale_count'] * float(price_data),1)
             ilt.append(product_info)
     except Exception as e:
         print("解析HTML内容失败:", e)
@@ -110,15 +120,16 @@ def main():
     depth = eval(pages)
     timeID = '%.5f' % time.time()
     all_info = []
+    collection = connect_database(goods)
     for i in range(depth):
         try:
             print("以下是第 ------ %d ------ 页数据" % (i + 1))
             info_list = []
-            url = 'https://search.jd.com/Search?keyword=' + goods + '&enc=utf-8' + goods + str(
+            url = 'https://search.jd.com/Search?keyword=' + goods + '&enc=utf-8&qrst=1&rt=1&stop=1&vt=2&wq=' + goods + '&page=' + str(
                 (i + 1) * 2 - 1) + '&click=0'
             html = getHTMLText(url)
             parsePage(info_list, html)
-            url = 'https://search.jd.com/s_new.php?keyword=' + goods + '&enc=utf-8' + goods +str(
+            url = 'https://search.jd.com/s_new.php?keyword=' + goods + '&enc=utf-8&qrst=1&rt=1&stop=1&vt=2&wq=' + goods + '&page=' + str(
                 (i + 1) * 2) + '&scrolling=y&log_id=' + str(timeID) + '&tpl=3_M'
             html = getHTMLText(url)
             parsePage(info_list, html)
@@ -127,6 +138,32 @@ def main():
         except Exception as e:
             print("爬取页面数据失败:", e)
             continue
+
+        for document in all_info:
+            try:
+                collection.insert_one(document)
+            except pymongo.errors.DuplicateKeyError:
+                print("文档已存在，跳过插入:", document)
+
+        # # 将数据保存为csv文件
+        # csv_file = 'jd_data.csv'
+        # fieldnames = ['序号', '爬取时间', '价格', '名称', '销售数量', '店铺地点', '所属店铺', '销售总额']
+        # with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
+        #     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        #     writer.writeheader()
+        #     for index, item in enumerate(all_info, start=1):
+        #         row_data = {
+        #             '序号': index,
+        #             '爬取时间': item['crawl_time'],
+        #             '价格': item['product_price'],
+        #             '名称': item['product_name'],
+        #             '销售数量': item['sale_count'],
+        #             '店铺地点': item['shop_location'],
+        #             '所属店铺': item['shop_name'],
+        #             '销售总额': item['total_sales']
+        #         }
+        #         writer.writerow(row_data)
+
     printGoodList(all_info)
 
 main()
