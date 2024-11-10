@@ -5,15 +5,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from .cookies.CookieSaver import CookieSaver
+from selenium.webdriver.edge.options import Options
 
 
 class BaseCrawler:
     __url = None
     driver: webdriver = None
 
-    def __init__(self, url: str):
+    def __init__(self, url: str, options: Options = None):
         self.__url = url
-        self.driver = webdriver.Edge()
+        if options is None:
+            options = Options()
+        self.driver = webdriver.Edge(options=options)
         self.driver.get(url)
 
     def searchKeyWords(self, keywords: list):
@@ -82,3 +85,10 @@ class CookieCrawler(BaseCrawler):
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, "#J_bottomPage > span.p-skip > em:nth-child(1) > b")))
         return super().getDataFrameOfGoods(page_num)
+
+
+class HeadlessCrawler(CookieCrawler):
+    def __init__(self, *args, **kwargs):
+        options = Options()
+        options.add_argument("--headless")
+        super().__init__(*args, options=options, **kwargs)
