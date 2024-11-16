@@ -1,6 +1,7 @@
 import time
 import warnings
 from abc import ABCMeta, abstractmethod
+from typing import Generator
 
 import pandas as pd
 from selenium import webdriver
@@ -84,8 +85,6 @@ class BaseCrawler(Crawler):
         self.driver = webdriver.Edge(options=options)
         self.driver.get(url)
 
-
-
     def searchKeyWords(self, keywords: list):
         try:
             (WebDriverWait(self.driver, 10)
@@ -99,16 +98,19 @@ class BaseCrawler(Crawler):
         text_input.send_keys(" ".join(keywords))
         text_input.send_keys(webdriver.Keys.RETURN)
 
-    def __collectGoodsData(self, goods: str) -> dict[str, list[str]]:
+    def __collectGoodsData(self, goods: Generator) -> dict[str, list[str]]:
         data_list = dict(zip(self.col2css.keys(), [[] for _ in self.col2css.keys()]))
         for good in goods:
             for (k, v) in self.col2css.items():
                 g = pq(good)
                 try:
-                    element = g(v).eq(0)
-                    data_list[k].append(element.text())
+                    elements = g(v).items()
+                    texts = [element.text() for element in elements]
+                    text = " ".join(texts)
+                    data_list[k].append(text)
                 except Exception as e:
                     print(e)
+        print(pd.DataFrame(data_list))
         return data_list
 
     def getOnePageOfGoods(self):
@@ -133,9 +135,6 @@ class BaseCrawler(Crawler):
         :return: None
         """
         pass
-        body = self.driver.find_element(By.CSS_SELECTOR, 'body')
-        body.send_keys(webdriver.Keys.RIGHT)
-        self.scrollDown()
 
     def scrollDown(self):
         self.driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
@@ -167,10 +166,6 @@ class BaseCrawler(Crawler):
 
 
 class CookieCrawler(BaseCrawler):
-    @abstractmethod
-    def turnToNextPage(self):
-        pass
-
     __cookie_saver: CookieSaver = None
 
     def __init__(self, cookie_filename: str, *args, **kwargs):
@@ -180,30 +175,52 @@ class CookieCrawler(BaseCrawler):
         cookie_filename = '/'.join(file)
 
         self.__cookie_saver = CookieSaver(self.driver, cookie_filename)
+        self.login()
 
-        not_load = not self.__cookie_saver.load_cookies()
-        invalid = not self.__cookie_saver.is_cookie_valid()
-
-        while not_load or invalid:
-            # TODO: 这里可以改成一个Web交互式界面
-            input("Cookie is failed to load, please press 'Enter' after login.")
-            self.__cookie_saver.get_cookies()
-            self.__cookie_saver.save_cookies()
-            not_load = not self.__cookie_saver.load_cookies()
-            invalid = not self.__cookie_saver.is_cookie_valid()
+    def turnToNextPage(self):
+        """
+        京东翻页
+        :return: None
+        """
+        if self.next_page_css == 'KEY.RIGHT':
+            body = self.driver.find_element(By.CSS_SELECTOR, 'body')
+            body.send_keys(webdriver.Keys.RIGHT)
+            self.scrollDown()
+            return
+        cnt = 0
+        while True:
+            try:
+                next_page = self.driver.find_element(By.CSS_SELECTOR, self.next_page_css)
+                self.driver.execute_script("arguments[0].click();", next_page)
+                self.scrollDown()
+                return
+            except Exception as e:
+                if cnt > 10:
+                    warnings.warn(f"无法点击下一页:{e}")
+                cnt += 1
 
     def getDataFrameOfGoods(self, page_num: int = 30) -> pd.DataFrame:
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, self.max_page_css)))
         return super().getDataFrameOfGoods(page_num)
 
+    def verifyCookies(self):
+        not_load = not self.__cookie_saver.load_cookies()
+        invalid = not self.__cookie_saver.is_cookie_valid()
+        return not_load or invalid
+
+    def login(self):
+        while self.verifyCookies():
+            # TODO: 这里可以改成一个Web交互式界面
+            input("Cookie is failed to load, please press 'Enter' after login.")
+            self.__cookie_saver.get_cookies()
+            self.__cookie_saver.save_cookies()
+
 
 class HeadlessCrawler(CookieCrawler):
-    @abstractmethod
-    def turnToNextPage(self):
-        pass
-
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.driver.close()
         options = Options()
         # 设置无头模式
         options.add_argument("--headless")
@@ -215,7 +232,8 @@ class HeadlessCrawler(CookieCrawler):
 
 
 class JDCrawler(CookieCrawler):
-    def __init__(self, name: str, url: str, cookie_filename: str):
+    def __init__(self, name: str, cookie_filename: str):
+        url = "http://www.jd.com"
         args = (cookie_filename, name, url)
         kwargs = {
             "col2css": {
@@ -232,55 +250,20 @@ class JDCrawler(CookieCrawler):
         }
         super().__init__(*args, **kwargs)
 
-    def turnToNextPage(self):
-        """
-        京东翻页
-        :return: None
-        """
-        if self.next_page_css == 'KEY.RIGHT':
-            body = self.driver.find_element(By.CSS_SELECTOR, 'body')
-            body.send_keys(webdriver.Keys.RIGHT)
-            self.scrollDown()
-            return
-        try:
-            WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.next_page_css)))
-        except Exception as e:
-            warnings.warn(f"无法找到下一页按钮:{e}")
-            return
-        self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
-        self.scrollDown()
 
 class TBCrawler(CookieCrawler):
-    def __init__(self, name: str, url: str, cookie_filename: str):
+    def __init__(self, name: str, cookie_filename: str):
+        url = "http://www.taobao.com"
         super().__init__(cookie_filename, name, url)
         self.col2css = {
             'crawlTime': 'div.deal-time',  # 淘宝成交时间的选择器
             'name': 'div.title--qJ7Xg_90 > span',  # 淘宝商品名称的选择器
             'price': 'div.priceWrapper--dBtPZ2K1 > div',  # 淘宝商品价格的选择器
-            'supplier': 'div.shopTextWrapper--wnaupS78 > span.shopNameText--DmtlsDKm',  # 淘宝供应商名称的选择器
-            'province': 'div.procity--wlcT2xH9 > span',
-            'city': 'div.procity--wlcT2xH9 > span',
+            'supplier': 'span.shopNameText--DmtlsDKm',  # 淘宝供应商名称的选择器
+            'province and city': 'div.procity--wlcT2xH9 > span',
             'commentCount': 'div.priceWrapper--dBtPZ2K1 > span.realSales--XZJiepmt'  # 淘宝评论数量的选择器
         }
-        self.goods_css = 'div.contentInner--xICYBlag > a.doubleCardWrapper--_6NpK_ey'  # 淘宝商品列表的选择器
+        self.goods_css = 'div.content--CUnfXXxv > div a.doubleCardWrapperAdapt--mEcC7olq'  # 淘宝商品列表的选择器
         self.search_bar = 'input[name = "q"]'  # 淘宝搜索框的选择器
         self.max_page_css = 'span.next-btn-helper::text'  # 淘宝总页数的选择器
-        self.next_page_css = 'KEY.RIGHT'  # 淘宝下一页的选择器
-
-    def turnToNextPage(self):
-        """
-        京东翻页
-        :return: None
-        """
-        if self.next_page_css == 'KEY.RIGHT':
-            body = self.driver.find_element(By.CSS_SELECTOR, 'body')
-            body.send_keys(webdriver.Keys.RIGHT)
-            self.scrollDown()
-            return
-        try:
-            WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.next_page_css)))
-        except Exception as e:
-            warnings.warn(f"无法找到下一页按钮:{e}")
-            return
-        self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
-        self.scrollDown()
+        self.next_page_css = 'button.next-btn.next-medium.next-btn-normal.next-pagination-item.next-next'  # 淘宝下一页的选择器
