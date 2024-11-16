@@ -1,8 +1,10 @@
+import time
 import warnings
 from abc import ABCMeta, abstractmethod
 
 import pandas as pd
 from selenium import webdriver
+from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -14,7 +16,6 @@ from pyquery import PyQuery as pq
 
 
 class Crawler(metaclass=ABCMeta):
-    """爬虫的抽象基类，包含抽象方法"""
     @abstractmethod
     def searchKeyWords(self, keywords):
         pass
@@ -45,21 +46,6 @@ class Crawler(metaclass=ABCMeta):
 
 
 class BaseCrawler(Crawler):
-    """
-    基本的泛型爬虫类
-
-
-    Attributes:
-        name: str               爬虫类的名称(暂时没用)
-        url: str                爬虫类爬取的url
-        driver: webdriver       爬虫类的webdriver(Chrome, Edge, Firefox ...)
-        col2css: dict[str, str] 字段名到css选择器的映射比如{'name': 'div.p-name.p-name-type-2 > a > em'}就表示name字段对应的css选择器，设置完就可以直接爬取了
-        goods_css: str          商品的css选择器，就是网页上商品元素的css选择器
-        search_bar: str         搜索框的css选择器，比如京东首页的input框
-        max_page_css: str       最大页数的css选择器(非必须),比如搜索后搜索结果的最下面
-        next_page_css: str      下一页的css选择器
-        options: Options        webDriver选项
-    """
     name = None
     url = None
     driver: webdriver = None
@@ -97,6 +83,8 @@ class BaseCrawler(Crawler):
         self.next_page_css = next_page_css
         self.driver = webdriver.Edge(options=options)
         self.driver.get(url)
+
+
 
     def searchKeyWords(self, keywords: list):
         try:
@@ -177,10 +165,6 @@ class BaseCrawler(Crawler):
         df = pd.DataFrame(goods)
         return df
 
-    # TODO: 添加一个进入链接，实现爬取评论的方法或者类
-    def getComments(self):
-        pass
-
 
 class CookieCrawler(BaseCrawler):
     @abstractmethod
@@ -230,15 +214,16 @@ class HeadlessCrawler(CookieCrawler):
         super().__init__(*args, options=options, **kwargs)
 
 
-class JDCrawler(HeadlessCrawler):
+class JDCrawler(CookieCrawler):
     def __init__(self, name: str, url: str, cookie_filename: str):
         args = (cookie_filename, name, url)
         kwargs = {
             "col2css": {
-                "name": 'div.p-name.p-name-type-2 > a > em',
-                "price": 'div.p-price > strong > i',
-                "supplier": 'div.p-shop > span > a',
-                "comment_num": 'div.p-commit > strong > a'
+                'crawlTime': 'li.gl-i-wrap > div.p-time > i',
+                'name': 'div.p-name.p-name-type-2 > a > em',
+                'price': 'div.p-price > strong > i',
+                'supplier': 'div.p-shop > span > a',
+                'commentCount': 'div.p-commit >strong >a'
             },
             "goods_css": '#J_goodsList > ul > li',
             "search_bar": 'input[type="text"]',
@@ -265,4 +250,37 @@ class JDCrawler(HeadlessCrawler):
         self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
         self.scrollDown()
 
-# TODO: 添加一个泛型爬虫，可以通过用户自定义爬取网站信息。
+class TBCrawler(CookieCrawler):
+    def __init__(self, name: str, url: str, cookie_filename: str):
+        super().__init__(cookie_filename, name, url)
+        self.col2css = {
+            'crawlTime': 'div.deal-time',  # 淘宝成交时间的选择器
+            'name': 'div.title--qJ7Xg_90 > span',  # 淘宝商品名称的选择器
+            'price': 'div.priceWrapper--dBtPZ2K1 > div',  # 淘宝商品价格的选择器
+            'supplier': 'div.shopTextWrapper--wnaupS78 > span.shopNameText--DmtlsDKm',  # 淘宝供应商名称的选择器
+            'province': 'div.procity--wlcT2xH9 > span',
+            'city': 'div.procity--wlcT2xH9 > span',
+            'commentCount': 'div.priceWrapper--dBtPZ2K1 > span.realSales--XZJiepmt'  # 淘宝评论数量的选择器
+        }
+        self.goods_css = 'div.contentInner--xICYBlag > a.doubleCardWrapper--_6NpK_ey'  # 淘宝商品列表的选择器
+        self.search_bar = 'input[name = "q"]'  # 淘宝搜索框的选择器
+        self.max_page_css = 'span.next-btn-helper::text'  # 淘宝总页数的选择器
+        self.next_page_css = 'KEY.RIGHT'  # 淘宝下一页的选择器
+
+    def turnToNextPage(self):
+        """
+        京东翻页
+        :return: None
+        """
+        if self.next_page_css == 'KEY.RIGHT':
+            body = self.driver.find_element(By.CSS_SELECTOR, 'body')
+            body.send_keys(webdriver.Keys.RIGHT)
+            self.scrollDown()
+            return
+        try:
+            WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.next_page_css)))
+        except Exception as e:
+            warnings.warn(f"无法找到下一页按钮:{e}")
+            return
+        self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
+        self.scrollDown()
