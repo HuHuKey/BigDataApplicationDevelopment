@@ -1,3 +1,5 @@
+import warnings
+
 from selenium.webdriver.chrome import webdriver
 import json
 import time
@@ -37,13 +39,18 @@ class CookieSaver:
             with open(self.filename, "r") as fp:
                 self.__cookies = json.load(fp)
         except Exception as e:
+            warnings.warn(f"加载cookie失败: {e}")
             return False
         if self.is_cookie_empty():
             return False
-        self.__driver.delete_all_cookies()
-        for cookie in self.__cookies:
-            self.__driver.add_cookie(cookie)
-        self.__driver.refresh()
+        try:
+            self.__driver.delete_all_cookies()
+            for cookie in self.__cookies:
+                self.__driver.add_cookie(cookie)
+            self.__driver.refresh()
+        except Exception as e:
+            warnings.warn(f"加载cookie失败: {e}")
+            return False
         return True
 
     def is_cookie_expired(self):
