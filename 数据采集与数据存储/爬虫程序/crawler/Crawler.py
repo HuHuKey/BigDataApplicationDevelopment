@@ -14,6 +14,7 @@ from pyquery import PyQuery as pq
 
 
 class Crawler(metaclass=ABCMeta):
+    """爬虫的抽象基类，包含抽象方法"""
     @abstractmethod
     def searchKeyWords(self, keywords):
         pass
@@ -44,6 +45,21 @@ class Crawler(metaclass=ABCMeta):
 
 
 class BaseCrawler(Crawler):
+    """
+    基本的泛型爬虫类
+
+
+    Attributes:
+        name: str               爬虫类的名称(暂时没用)
+        url: str                爬虫类爬取的url
+        driver: webdriver       爬虫类的webdriver(Chrome, Edge, Firefox ...)
+        col2css: dict[str, str] 字段名到css选择器的映射比如{'name': 'div.p-name.p-name-type-2 > a > em'}就表示name字段对应的css选择器，设置完就可以直接爬取了
+        goods_css: str          商品的css选择器，就是网页上商品元素的css选择器
+        search_bar: str         搜索框的css选择器，比如京东首页的input框
+        max_page_css: str       最大页数的css选择器(非必须),比如搜索后搜索结果的最下面
+        next_page_css: str      下一页的css选择器
+        options: Options        webDriver选项
+    """
     name = None
     url = None
     driver: webdriver = None
@@ -161,6 +177,10 @@ class BaseCrawler(Crawler):
         df = pd.DataFrame(goods)
         return df
 
+    # TODO: 添加一个进入链接，实现爬取评论的方法或者类
+    def getComments(self):
+        pass
+
 
 class CookieCrawler(BaseCrawler):
     @abstractmethod
@@ -244,3 +264,5 @@ class JDCrawler(HeadlessCrawler):
             return
         self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
         self.scrollDown()
+
+# TODO: 添加一个泛型爬虫，可以通过用户自定义爬取网站信息。

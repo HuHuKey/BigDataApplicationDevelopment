@@ -22,6 +22,7 @@ class CookieSaver:
         self.__cookies = self.__driver.get_cookies()
         print(self.__cookies)
 
+    # TODO: 实现cookie的mongoDB存取
     def save_cookies(self):
         """
         持久化当前网页cookie
