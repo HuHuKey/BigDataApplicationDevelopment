@@ -3,6 +3,55 @@ import warnings
 from selenium.webdriver.chrome import webdriver
 import json
 import time
+import pymongo
+from selenium.webdriver.chrome.options import Options
+
+
+class Cookie:
+    content = None
+    domain = None
+
+    def __init__(self, content: dict, domain: str):
+        self.content = content
+        self.domain = domain
+
+    def to_dict(self):
+        return {self.domain: self.content}
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4)
+
+    def is_cookie_expired(self):
+        """
+        判断cookie是否过期
+        :return: cookie是否过期
+        """
+
+        current_time = int(time.time())
+        for cookie in self.content:
+            if cookie.get('expire', current_time + 1) < current_time:
+                return True
+        return False
+
+    def is_cookie_empty(self):
+        """
+        判断cookie是否为空
+        :return: cookie是否为空
+        """
+        return self.content is None or len(self.content) == 0 or self.content == []
+
+    def is_cookie_valid(self):
+        """
+        判断cookie是否有效
+        :return: cookie是否有效
+        """
+        return not (self.is_cookie_empty() or self.is_cookie_expired())
+
+    def to_mongo(self, host="mongodb://localhost:27017/"):
+        with pymongo.MongoClient(host) as client:
+            db = client['cookie']
+            collection = db[self.domain]
+            collection.update_one({'domain': self.domain}, {'$set': self.content}, upsert=True)
 
 
 class CookieSaver:
@@ -20,14 +69,18 @@ class CookieSaver:
         :return:
         """
         self.__cookies = self.__driver.get_cookies()
-        print(self.__cookies)
+        # print(self.__cookies)
 
     # TODO: 实现cookie的mongoDB存取
+    # TODO: 以{'url':'cookie'}的形式存储cookie,以{'url':'cookie'}的形式加载cookie
     def save_cookies(self):
         """
         持久化当前网页cookie
         :return:
         """
+        domain = self.__driver.execute_script("return window.location.hostname;")
+        domain = domain.replace("www.", "")
+        temp = {domain: self.__cookies}
         with open(self.filename, 'w') as f:
             json.dump(self.__cookies, fp=f, indent=4)
 
