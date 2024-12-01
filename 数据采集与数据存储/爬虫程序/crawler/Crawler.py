@@ -3,6 +3,7 @@ import types
 import warnings
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+import random
 
 import pandas as pd
 from selenium import webdriver
@@ -83,7 +84,15 @@ class BaseCrawler(Crawler):
         self.search_bar = search_bar
         self.max_page_css = max_page_css
         self.next_page_css = next_page_css
+        options.add_experimental_option('detach', False)  # 规避程序运行完自动退出浏览器
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_argument('--ignore-certificate-errors')
+        options.add_argument('--ignore-ssl-errors')
+        options.add_argument(
+            'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0')
         self.driver = webdriver.Edge(options=options)
+        self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         self.driver.get(url)
 
     def searchKeyWords(self, keywords: list):
@@ -94,7 +103,7 @@ class BaseCrawler(Crawler):
         except Exception as e:
             warnings.warn(f"无法找到搜索框，请检查网络:{e}")
             return
-
+        self.randomWait(0.8, 2)
         text_input = self.driver.find_element(By.CSS_SELECTOR, self.search_bar)
         text_input.send_keys(" ".join(keywords))
         text_input.send_keys(webdriver.Keys.RETURN)
@@ -178,6 +187,9 @@ class BaseCrawler(Crawler):
         df = pd.DataFrame(goods)
         return df
 
+    def randomWait(self, min_time: float = 0.5, max_time: float = 1.5):
+        self.driver.implicitly_wait(random.uniform(min_time, max_time))
+
 
 class CookieCrawler(BaseCrawler):
     data_list = {}
@@ -186,7 +198,7 @@ class CookieCrawler(BaseCrawler):
     def turnToNextPage(self):
         pass
 
-    __cookie_saver: CookieSaver = None
+    cookie_saver: CookieSaver = None
 
     def __init__(self, cookie_filename: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -194,18 +206,18 @@ class CookieCrawler(BaseCrawler):
         file[-1] = self.url.replace("://", "_") + '_' + file[-1]
         cookie_filename = '/'.join(file)
 
-        self.__cookie_saver = CookieSaver(self.driver, cookie_filename)
+        self.cookie_saver = CookieSaver(self.driver, cookie_filename)
 
-        not_load = not self.__cookie_saver.load_cookies()
-        invalid = not self.__cookie_saver.is_cookie_valid()
+        not_load = not self.cookie_saver.load_cookies()
+        invalid = not self.cookie_saver.is_cookie_valid()
 
         while not_load or invalid:
             # TODO: 这里可以改成一个Web交互式界面
             input("Cookie is failed to load, please press 'Enter' after login.")
-            self.__cookie_saver.get_cookies()
-            self.__cookie_saver.save_cookies()
-            not_load = not self.__cookie_saver.load_cookies()
-            invalid = not self.__cookie_saver.is_cookie_valid()
+            self.cookie_saver.get_cookies()
+            self.cookie_saver.save_cookies()
+            not_load = not self.cookie_saver.load_cookies()
+            invalid = not self.cookie_saver.is_cookie_valid()
 
     def getDataFrameOfGoods(self, page_num: int = 30) -> pd.DataFrame:
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(
@@ -229,12 +241,16 @@ class HeadlessCrawler(CookieCrawler):
         super().__init__(*args, options=options, **kwargs)
 
 
+def getTodayDate():
+    return datetime.now().date().isoformat()
+
+
 class JDCrawler(CookieCrawler):
-    def __init__(self, name: str, url: str, cookie_filename: str):
-        args = (cookie_filename, name, url)
+    def __init__(self, name: str, cookie_filename: str):
+        args = (cookie_filename, name, 'http://www.jd.com')
         kwargs = {
             "col2css": {
-                'crawlTime': datetime.now,
+                'crawlTime': getTodayDate,
                 'name': 'div.p-name.p-name-type-2 > a > em',
                 'price': 'div.p-price > strong > i',
                 'supplier': 'div.p-shop > span > a',
@@ -244,7 +260,7 @@ class JDCrawler(CookieCrawler):
             "goods_css": '#J_goodsList > ul > li',
             "search_bar": 'input[type="text"]',
             "max_page_css": '#J_bottomPage > span.p-skip > em:nth-child(1) > b',
-            'next_page_css': 'KEY.RIGHT'
+            'next_page_css': '.fp-next'
         }
         super().__init__(*args, **kwargs)
 
@@ -266,22 +282,31 @@ class JDCrawler(CookieCrawler):
         self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
         self.scrollDown()
 
+    def scrollDown(self):
+        self.randomWait()
+        self.driver.refresh()
+        pass
+
     def appendGoodsList(self, data_list, g):
         super().appendGoodsList(data_list, g)
         k = 'href'
         data_list[k].append("https:" + g('div.p-name.p-name-type-2 > a').attr['href'])
+
+    def getDataFrameOfGoods(self, page_num: int = 30) -> pd.DataFrame:
+        self.driver.implicitly_wait(3)
+        return super().getDataFrameOfGoods(page_num)
 
 
 class TBCrawler(CookieCrawler):
     def __init__(self, name: str, url: str, cookie_filename: str):
         super().__init__(cookie_filename, name, url)
         self.col2css = {
-            'crawlTime': datetime.now,
+            'crawlTime': getTodayDate,
             'name': 'div.title--qJ7Xg_90 > span',  # 淘宝商品名称的选择器
             'price': 'div.priceWrapper--dBtPZ2K1 > div',  # 淘宝商品价格的选择器
             'supplier': 'div.shopTextWrapper--wnaupS78 > span.shopNameText--DmtlsDKm',  # 淘宝供应商名称的选择器
             'city': 'div.procity--wlcT2xH9 > span',
-            'commentCount': 'div.priceWrapper--dBtPZ2K1 > span.realSales--XZJiepmt', # 淘宝评论数量的选择器
+            'commentCount': 'div.priceWrapper--dBtPZ2K1 > span.realSales--XZJiepmt',  # 淘宝评论数量的选择器
             'href': ''
         }
         self.goods_css = 'div.contentInner--xICYBlag > a.doubleCardWrapper--_6NpK_ey'  # 淘宝商品列表的选择器
@@ -306,6 +331,7 @@ class TBCrawler(CookieCrawler):
             return
         self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
         self.scrollDown()
+
     def appendGoodsList(self, data_list, g):
         super().appendGoodsList(data_list, g)
         k = 'href'
