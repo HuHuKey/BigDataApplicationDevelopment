@@ -183,11 +183,22 @@ class BaseCrawler(Crawler):
         self.driver.close()
 
     def getDataFrameOfGoods(self, page_num: int = 30) -> pd.DataFrame:
+        """
+        获取商品信息的DataFrame
+        :param page_num: 爬取多少页
+        :return: 商品信息的DataFrame
+        """
         goods = self.getDictOfGoods(page_num)
         df = pd.DataFrame(goods)
         return df
 
     def randomWait(self, min_time: float = 0.5, max_time: float = 1.5):
+        """
+        随机等待一段时间
+        :param min_time:最少等待时间，默认为0.5秒
+        :param max_time: 最大等待时间，默认为1.5秒
+        :return:
+        """
         self.driver.implicitly_wait(random.uniform(min_time, max_time))
 
 
@@ -200,21 +211,18 @@ class CookieCrawler(BaseCrawler):
 
     cookie_saver: CookieSaver = None
 
-    def __init__(self, cookie_filename: str, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        file = cookie_filename.split('/')
-        file[-1] = self.url.replace("://", "_") + '_' + file[-1]
-        cookie_filename = '/'.join(file)
+        self.cookie_saver = CookieSaver(self.driver)
+        self.loadCookies()
 
-        self.cookie_saver = CookieSaver(self.driver, cookie_filename)
-
+    def loadCookies(self):
         not_load = not self.cookie_saver.load_cookies()
         invalid = not self.cookie_saver.is_cookie_valid()
-
         while not_load or invalid:
             # TODO: 这里可以改成一个Web交互式界面
             input("Cookie is failed to load, please press 'Enter' after login.")
-            self.cookie_saver.get_cookies()
+            self.cookie_saver.refresh_cookies()
             self.cookie_saver.save_cookies()
             not_load = not self.cookie_saver.load_cookies()
             invalid = not self.cookie_saver.is_cookie_valid()
@@ -223,6 +231,10 @@ class CookieCrawler(BaseCrawler):
         WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, self.max_page_css)))
         return super().getDataFrameOfGoods(page_num)
+
+    def searchKeyWords(self, keywords: list):
+        self.driver.get(self.url)
+        super().searchKeyWords(keywords)
 
 
 class HeadlessCrawler(CookieCrawler):
@@ -246,8 +258,8 @@ def getTodayDate():
 
 
 class JDCrawler(CookieCrawler):
-    def __init__(self, name: str, cookie_filename: str):
-        args = (cookie_filename, name, 'http://www.jd.com')
+    def __init__(self, name: str):
+        args = (name, 'http://www.jd.com')
         kwargs = {
             "col2css": {
                 'crawlTime': getTodayDate,
@@ -298,8 +310,8 @@ class JDCrawler(CookieCrawler):
 
 
 class TBCrawler(CookieCrawler):
-    def __init__(self, name: str, url: str, cookie_filename: str):
-        super().__init__(cookie_filename, name, url)
+    def __init__(self, name: str, url: str):
+        super().__init__( name, url)
         self.col2css = {
             'crawlTime': getTodayDate,
             'name': 'div.title--qJ7Xg_90 > span',  # 淘宝商品名称的选择器
