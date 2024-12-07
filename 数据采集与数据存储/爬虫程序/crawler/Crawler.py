@@ -1,13 +1,11 @@
-import time
+import random
 import types
 import warnings
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-import random
 
 import pandas as pd
 from selenium import webdriver
-from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -183,22 +181,11 @@ class BaseCrawler(Crawler):
         self.driver.close()
 
     def getDataFrameOfGoods(self, page_num: int = 30) -> pd.DataFrame:
-        """
-        获取商品信息的DataFrame
-        :param page_num: 爬取多少页
-        :return: 商品信息的DataFrame
-        """
         goods = self.getDictOfGoods(page_num)
         df = pd.DataFrame(goods)
         return df
 
     def randomWait(self, min_time: float = 0.5, max_time: float = 1.5):
-        """
-        随机等待一段时间
-        :param min_time:最少等待时间，默认为0.5秒
-        :param max_time: 最大等待时间，默认为1.5秒
-        :return:
-        """
         self.driver.implicitly_wait(random.uniform(min_time, max_time))
 
 
@@ -211,30 +198,27 @@ class CookieCrawler(BaseCrawler):
 
     cookie_saver: CookieSaver = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, cookie_filename: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.cookie_saver = CookieSaver(self.driver)
-        self.loadCookies()
+        file = cookie_filename.split('/')
+        file[-1] = self.url.replace("://", "_") + '_' + file[-1]
+        cookie_filename = '/'.join(file)
 
-    def loadCookies(self):
+        self.cookie_saver = CookieSaver(self.driver)
+
         not_load = not self.cookie_saver.load_cookies()
         invalid = not self.cookie_saver.is_cookie_valid()
+
         while not_load or invalid:
             # TODO: 这里可以改成一个Web交互式界面
             input("Cookie is failed to load, please press 'Enter' after login.")
-            self.cookie_saver.refresh_cookies()
+            self.cookie_saver.get_cookies()
             self.cookie_saver.save_cookies()
             not_load = not self.cookie_saver.load_cookies()
             invalid = not self.cookie_saver.is_cookie_valid()
 
     def getDataFrameOfGoods(self, page_num: int = 30) -> pd.DataFrame:
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(
-            (By.CSS_SELECTOR, self.max_page_css)))
         return super().getDataFrameOfGoods(page_num)
-
-    def searchKeyWords(self, keywords: list):
-        self.driver.get(self.url)
-        super().searchKeyWords(keywords)
 
 
 class HeadlessCrawler(CookieCrawler):
@@ -252,14 +236,11 @@ class HeadlessCrawler(CookieCrawler):
         options.page_load_strategy = "none"
         super().__init__(*args, options=options, **kwargs)
 
-
 def getTodayDate():
     return datetime.now().date().isoformat()
-
-
 class JDCrawler(CookieCrawler):
-    def __init__(self, name: str):
-        args = (name, 'http://www.jd.com')
+    def __init__(self, name: str, url: str, cookie_filename: str):
+        args = (cookie_filename, name, url)
         kwargs = {
             "col2css": {
                 'crawlTime': getTodayDate,
@@ -291,6 +272,7 @@ class JDCrawler(CookieCrawler):
         except Exception as e:
             warnings.warn(f"无法找到下一页按钮:{e}")
             return
+
         self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
         self.scrollDown()
 
@@ -298,39 +280,35 @@ class JDCrawler(CookieCrawler):
         self.randomWait()
         self.driver.refresh()
         pass
-
     def appendGoodsList(self, data_list, g):
         super().appendGoodsList(data_list, g)
         k = 'href'
         data_list[k].append("https:" + g('div.p-name.p-name-type-2 > a').attr['href'])
 
-    def getDataFrameOfGoods(self, page_num: int = 30) -> pd.DataFrame:
-        self.driver.implicitly_wait(3)
-        return super().getDataFrameOfGoods(page_num)
-
 
 class TBCrawler(CookieCrawler):
-    def __init__(self, name: str, url: str):
-        super().__init__( name, url)
+    def __init__(self, name: str, url: str, cookie_filename: str):
+        super().__init__(cookie_filename, name, url)
         self.col2css = {
             'crawlTime': getTodayDate,
-            'name': 'div.title--qJ7Xg_90 > span',  # 淘宝商品名称的选择器
-            'price': 'div.priceWrapper--dBtPZ2K1 > div',  # 淘宝商品价格的选择器
-            'supplier': 'div.shopTextWrapper--wnaupS78 > span.shopNameText--DmtlsDKm',  # 淘宝供应商名称的选择器
+            'name': "div[class *= 'title'] > span",  # 淘宝商品名称的选择器
+            'price': "div[class*='priceWrapper']> div:nth-child(2)",  # 淘宝商品价格的选择器
+            'supplier': "div[class*='shopTextWrapper']> span.shopNameText--DmtlsDKm",  # 淘宝供应商名称的选择器
             'city': 'div.procity--wlcT2xH9 > span',
-            'commentCount': 'div.priceWrapper--dBtPZ2K1 > span.realSales--XZJiepmt',  # 淘宝评论数量的选择器
+            'commentCount': 'div.priceWrapper--dBtPZ2K1 > span.realSales--XZJiepmt', # 淘宝评论数量的选择器
             'href': ''
         }
-        self.goods_css = 'div.contentInner--xICYBlag > a.doubleCardWrapper--_6NpK_ey'  # 淘宝商品列表的选择器
+        self.goods_css = '#content_items_wrapper > div'  # 淘宝商品列表的选择器
         self.search_bar = 'input[name = "q"]'  # 淘宝搜索框的选择器
-        self.max_page_css = 'span.next-btn-helper::text'  # 淘宝总页数的选择器
-        self.next_page_css = 'KEY.RIGHT'  # 淘宝下一页的选择器
+        self.max_page_css = '#search-content-leftWrap > div.leftContent--BdYLMbH8 > div.pgWrap--RTFKoWa6 > div > div > div > button:nth-child(7) > span'  # 淘宝总页数的选择器
+        self.next_page_css = "div.pgWrap--RTFKoWa6 > div > div > button[class *= 'next-next']"  # 淘宝下一页的选择器
 
     def turnToNextPage(self):
         """
-        京东翻页
+        淘宝翻页
         :return: None
         """
+        self.randomWait()
         if self.next_page_css == 'KEY.RIGHT':
             body = self.driver.find_element(By.CSS_SELECTOR, 'body')
             body.send_keys(webdriver.Keys.RIGHT)
@@ -343,6 +321,7 @@ class TBCrawler(CookieCrawler):
             return
         self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
         self.scrollDown()
+
 
     def appendGoodsList(self, data_list, g):
         super().appendGoodsList(data_list, g)

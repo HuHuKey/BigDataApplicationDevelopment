@@ -7,7 +7,7 @@ def transToListOfLists(d: dict[str, list[str]]):
 
 
 def saveDataFrameToMongoDB(df: pandas.DataFrame, db_name: str, collection: str,
-                           host: str = "mongodb://localhost:27017/"):
+                           host: str = "mongodb://25.tcp.cpolar.top:11723"):
     with MongoClient(host) as client:
         db = client[db_name]
         collection = db[collection]
