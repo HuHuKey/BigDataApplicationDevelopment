@@ -85,7 +85,7 @@ class BaseCrawler(Crawler):
         self.max_page_css = max_page_css
         self.next_page_css = next_page_css
         options.add_experimental_option('detach', False)  # 规避程序运行完自动退出浏览器
-        options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        # options.add_experimental_option('excludeSwitches', ['enable-automation'])
         options.add_argument('--disable-blink-features=AutomationControlled')
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--ignore-ssl-errors')
