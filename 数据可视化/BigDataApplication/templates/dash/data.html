@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>data</title>
+</head>
+<body>
+{% if sales_data %}
+    {{ sales_data }}
+    {% block content %}
+        <ul>
+        <h1>销售数据展示</h1>
+        {% for data in sales_data %}
+            <li>
+            <p>产品名称: {{ data.name }}</p>
+            <p>销售数量: {{ data.crawl_time }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endblock %}
+    {#    <ul>#}
+    {#        {% for sale in SalesData %}#}
+    {#            /polls/{{ question.id }}/#}
+    {#            <li><a href="">{{ sale.product_name }}</a></li>#}
+    {#        {% endfor %}#}
+    {#    </ul>#}
+{% else %}
+    <p>No polls are available.</p>
+    <p> {{  error_message }}</p>
+    <p> {{ sales_data }} </p>
+{% endif %}
+</body>
+</html>
