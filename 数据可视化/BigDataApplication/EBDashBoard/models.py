@@ -1,7 +1,8 @@
 import mongoengine
 from EBAsite.settings import DATABASES
+from utils.ConnectionPool import host,port
 
-mongoengine.connect(DATABASES['mongodb']['NAME'], host='localhost', port=27017)
+mongoengine.connect(DATABASES['mongodb']['NAME'], host=host, port=port)
 
 
 # Create your models here.

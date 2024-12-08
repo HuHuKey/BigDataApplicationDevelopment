@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 
-host = 'localhost'
-port = 27017
+host = '25.tcp.cpolar.top'
+port = 11723
 min_pool_size = 2
 max_pool_size = 10
 
