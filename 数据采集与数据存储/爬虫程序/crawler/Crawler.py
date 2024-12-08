@@ -198,11 +198,8 @@ class CookieCrawler(BaseCrawler):
 
     cookie_saver: CookieSaver = None
 
-    def __init__(self, cookie_filename: str, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        file = cookie_filename.split('/')
-        file[-1] = self.url.replace("://", "_") + '_' + file[-1]
-        cookie_filename = '/'.join(file)
 
         self.cookie_saver = CookieSaver(self.driver)
 
@@ -212,13 +209,17 @@ class CookieCrawler(BaseCrawler):
         while not_load or invalid:
             # TODO: 这里可以改成一个Web交互式界面
             input("Cookie is failed to load, please press 'Enter' after login.")
-            self.cookie_saver.get_cookies()
+            self.cookie_saver.refresh_cookies()
             self.cookie_saver.save_cookies()
             not_load = not self.cookie_saver.load_cookies()
             invalid = not self.cookie_saver.is_cookie_valid()
 
     def getDataFrameOfGoods(self, page_num: int = 30) -> pd.DataFrame:
         return super().getDataFrameOfGoods(page_num)
+
+    def searchKeyWords(self, keywords: list):
+        self.driver.get(self.url)
+        super().searchKeyWords(keywords)
 
 
 class HeadlessCrawler(CookieCrawler):
@@ -236,11 +237,14 @@ class HeadlessCrawler(CookieCrawler):
         options.page_load_strategy = "none"
         super().__init__(*args, options=options, **kwargs)
 
+
 def getTodayDate():
     return datetime.now().date().isoformat()
+
+
 class JDCrawler(CookieCrawler):
-    def __init__(self, name: str, url: str, cookie_filename: str):
-        args = (cookie_filename, name, url)
+    def __init__(self, name: str):
+        args = (name, 'http://www.jd.com')
         kwargs = {
             "col2css": {
                 'crawlTime': getTodayDate,
@@ -280,6 +284,7 @@ class JDCrawler(CookieCrawler):
         self.randomWait()
         self.driver.refresh()
         pass
+
     def appendGoodsList(self, data_list, g):
         super().appendGoodsList(data_list, g)
         k = 'href'
@@ -295,7 +300,7 @@ class TBCrawler(CookieCrawler):
             'price': "div[class*='priceWrapper']> div:nth-child(2)",  # 淘宝商品价格的选择器
             'supplier': "div[class*='shopTextWrapper']> span.shopNameText--DmtlsDKm",  # 淘宝供应商名称的选择器
             'city': 'div.procity--wlcT2xH9 > span',
-            'commentCount': 'div.priceWrapper--dBtPZ2K1 > span.realSales--XZJiepmt', # 淘宝评论数量的选择器
+            'commentCount': 'div.priceWrapper--dBtPZ2K1 > span.realSales--XZJiepmt',  # 淘宝评论数量的选择器
             'href': ''
         }
         self.goods_css = '#content_items_wrapper > div'  # 淘宝商品列表的选择器
@@ -321,7 +326,6 @@ class TBCrawler(CookieCrawler):
             return
         self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
         self.scrollDown()
-
 
     def appendGoodsList(self, data_list, g):
         super().appendGoodsList(data_list, g)
