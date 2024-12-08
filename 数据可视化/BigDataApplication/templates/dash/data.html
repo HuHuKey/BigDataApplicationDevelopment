@@ -8,8 +8,8 @@
 {% if sales_data %}
     {{ sales_data }}
     {% block content %}
-        <ul>
-        <h1>销售数据展示</h1>
+<h1>销售数据展示</h1>
+<ul>
         {% for data in sales_data %}
             <li>
             <p>产品名称: {{ data.name }}</p>
