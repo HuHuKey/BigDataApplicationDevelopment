@@ -16,8 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
+
+import EBDashBoard.urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('dashboard/', include('EBDashBoard.urls')),
+    path("accounts/", include("allauth.urls")),
+    path("_allauth/", include("allauth.headless.urls")),
+    path("", TemplateView.as_view(template_name="index.html")),
+    path("accounts/", include("allauth.urls")),
+    path("accounts/profile/", TemplateView.as_view(template_name="profile.html")),
+    path("i18n/", include("django.conf.urls.i18n")),
 ]

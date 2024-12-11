@@ -1,9 +1,10 @@
 import datetime
+import json
 
 from django.shortcuts import render
+from django.http.response import HttpResponse
 
 from .models import Jdnew
-
 
 
 # Create your views here.
@@ -16,3 +17,14 @@ def dashboard_view(request):
     except Exception as e:
         context = {'error_message': f'数据库查询出现问题，请稍后再试{e}'}
     return render(request, 'dash/data.html', context)
+
+
+def post(request):
+    if request.method == "GET":
+        result = {}
+        result['totalSales'] = 10
+
+        result = json.dumps(result)
+        return HttpResponse(result, content_type='application/json;charset=utf8')
+    else:
+        return render(request, "dash/data.html")
