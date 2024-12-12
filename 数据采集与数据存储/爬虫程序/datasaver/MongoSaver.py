@@ -1,3 +1,6 @@
+import warnings
+
+import pymongo.errors
 from pymongo import MongoClient
 import pandas
 

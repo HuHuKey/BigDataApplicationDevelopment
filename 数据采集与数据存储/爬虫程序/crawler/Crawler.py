@@ -292,8 +292,8 @@ class JDCrawler(CookieCrawler):
 
 
 class TBCrawler(CookieCrawler):
-    def __init__(self, name: str, url: str, cookie_filename: str):
-        super().__init__(cookie_filename, name, url)
+    def __init__(self, name: str):
+        super().__init__(name, "www.taobao.com")
         self.col2css = {
             'crawlTime': getTodayDate,
             'name': "div[class *= 'title'] > span",  # 淘宝商品名称的选择器
@@ -331,3 +331,26 @@ class TBCrawler(CookieCrawler):
         super().appendGoodsList(data_list, g)
         k = 'href'
         data_list[k].append(g('div.content--CUnfXXxv > div > div > a').attr['href'])
+
+
+def makeCrawl(keywords: str, page=30, type="JD") -> (dict, int):
+    """
+    一次执行爬虫程序,
+    可选的type列表['JD','TB']
+    JD: www.jd.com 的爬虫
+    TB: www.taobao.com 的爬虫
+    :param keywords: 搜索关键词字典
+    :param page: 搜索页数 默认30页
+    :param type: 搜索类型 默认JD
+    :return: 一个数据字典，以及爬取数据个数
+    """
+    try:
+        switch = {
+            "JD": JDCrawler("JD"),
+            "TB": TBCrawler("TB")
+        }
+        crw = switch[type]
+        dt = crw.getDictOfGoods(page)
+        return dt, len(list(dt.values()))
+    except Exception as e:
+        raise RuntimeError(e)

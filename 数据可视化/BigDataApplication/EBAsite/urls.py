@@ -26,7 +26,5 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("_allauth/", include("allauth.headless.urls")),
     path("", TemplateView.as_view(template_name="index.html")),
-    path("accounts/", include("allauth.urls")),
-    path("accounts/profile/", TemplateView.as_view(template_name="profile.html")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]

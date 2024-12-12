@@ -3,5 +3,6 @@ from . import views
 
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
-    path('api/getDashboardData', views.post, name='api'),
+    path("start/", views.start_crawl, name="profile"),
+    path("start/crawl", views.start_crawl, name="crawl"),
 ]

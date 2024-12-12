@@ -89,7 +89,7 @@ class SetPasswordField(PasswordField):
 
 class LoginForm(forms.Form):
     password = PasswordField(label=_("Password"), autocomplete="current-password")
-    remember = forms.BooleanField(label=_("Remember Me"), required=False)
+    remember = forms.BooleanField(label=_("记住密码"), required=False)
 
     user = None
 
@@ -109,7 +109,7 @@ class LoginForm(forms.Form):
                 attrs={"placeholder": _("Username"), "autocomplete": "username"}
             )
             login_field = forms.CharField(
-                label=_("Username"),
+                label=_("用户名"),
                 widget=login_widget,
                 max_length=get_username_max_length(),
             )
@@ -133,7 +133,7 @@ class LoginForm(forms.Form):
         except NoReverseMatch:
             pass
         else:
-            forgot_txt = _("Forgot your password?")
+            forgot_txt = _("忘记密码？")
             self.fields["password"].help_text = mark_safe(
                 f'<a href="{reset_url}">{forgot_txt}</a>'
             )  # nosec
@@ -296,7 +296,7 @@ class BaseSignupForm(_base_signup_form_class()):  # type: ignore[misc]
         ]
         if app_settings.SIGNUP_EMAIL_ENTER_TWICE:
             self.fields["email2"] = forms.EmailField(
-                label=_("Email (again)"),
+                label=_("再次输入邮箱"),
                 widget=forms.TextInput(
                     attrs={
                         "type": "email",
@@ -305,10 +305,10 @@ class BaseSignupForm(_base_signup_form_class()):  # type: ignore[misc]
                 ),
             )
         if email_required:
-            self.fields["email"].label = gettext("Email")
+            self.fields["email"].label = gettext("邮箱")
             self.fields["email"].required = True
         else:
-            self.fields["email"].label = gettext("Email (optional)")
+            self.fields["email"].label = gettext("邮箱 （可选）")
             self.fields["email"].required = False
             self.fields["email"].widget.is_required = False
             if self.username_required:
@@ -416,7 +416,7 @@ class SignupForm(BaseSignupForm):
             )
             if app_settings.SIGNUP_PASSWORD_ENTER_TWICE:
                 self.fields["password2"] = PasswordField(
-                    label=_("Password (again)"), autocomplete="new-password"
+                    label=_("再次输入密码"), autocomplete="new-password"
                 )
 
         if hasattr(self, "field_order"):
@@ -551,10 +551,10 @@ class AddEmailForm(UserForm):
 
 class ChangePasswordForm(PasswordVerificationMixin, UserForm):
     oldpassword = PasswordField(
-        label=_("Current Password"), autocomplete="current-password"
+        label=_("当前密码"), autocomplete="current-password"
     )
-    password1 = SetPasswordField(label=_("New Password"))
-    password2 = PasswordField(label=_("New Password (again)"))
+    password1 = SetPasswordField(label=_("新密码"))
+    password2 = PasswordField(label=_("再次输入新密码"))
 
     def __init__(self, *args, **kwargs):
         super(ChangePasswordForm, self).__init__(*args, **kwargs)
@@ -570,8 +570,8 @@ class ChangePasswordForm(PasswordVerificationMixin, UserForm):
 
 
 class SetPasswordForm(PasswordVerificationMixin, UserForm):
-    password1 = SetPasswordField(label=_("Password"))
-    password2 = PasswordField(label=_("Password (again)"))
+    password1 = SetPasswordField(label=_("密码"))
+    password2 = PasswordField(label=_("再次输入密码"))
 
     def __init__(self, *args, **kwargs):
         super(SetPasswordForm, self).__init__(*args, **kwargs)
@@ -583,7 +583,7 @@ class SetPasswordForm(PasswordVerificationMixin, UserForm):
 
 class ResetPasswordForm(forms.Form):
     email = forms.EmailField(
-        label=_("Email"),
+        label=_("邮箱"),
         required=True,
         widget=forms.TextInput(
             attrs={

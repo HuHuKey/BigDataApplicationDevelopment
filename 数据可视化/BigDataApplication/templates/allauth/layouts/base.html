@@ -5,7 +5,6 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
-        <meta name="generator" content="Hugo 0.118.2">
         <title>
             {% block head_title %}{% endblock %}
         </title>
@@ -19,7 +18,7 @@
         <header data-bs-theme="dark">
             <nav class="navbar navbar-expand-lg bg-body-tertiary">
                 <div class="container-fluid">
-                    <a class="navbar-brand" href="/">django-allauth</a>
+                    <a class="navbar-brand" href="/">电商数据大屏展示Demo</a>
                     <button class="navbar-toggler"
                             type="button"
                             data-bs-toggle="collapse"
@@ -34,10 +33,10 @@
                             aria-label="Project links"
                             class="navbar-nav me-auto mb-2 mb-lg-0">
                             <li class="nav-item">
-                                <a class="nav-link active" href="https://docs.allauth.org/">Documentation</a>
+                                <a class="nav-link active" href="">开发文档</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="https://codeberg.org/allauth/django-allauth">Repository</a>
+                                <a class="nav-link" href="https://gitee.com/huhukey/BigDataApplicationDevelopment">代码仓库</a>
                             </li>
                         </ul>
                         <div class="d-flex flex-column flex-sm-row gap-2 col-lg-3 justify-content-lg-end text-nowrap">
@@ -63,14 +62,14 @@
                                 {% url 'socialaccount_connections' as socialaccount_url_ %}
                                 {% if email_url_ or socialaccount_url_ %}
                                     <a href="{% if email_url_ %}{{ email_url_ }}{% else %}{{ socialaccount_url_ }}{% endif %}"
-                                       class="btn btn-secondary">Manage Account</a>
+                                       class="btn btn-secondary">管理账号</a>
                                 {% endif %}
-                                <a href="{% url 'account_logout' %}" class="btn btn-danger">{% translate "Sign Out" %}</a>
+                                <a href="{% url 'account_logout' %}" class="btn btn-danger">{% translate "退出登录" %}</a>
                             {% else %}
-                                <a href="{% url 'account_login' %}" class="btn btn-outline-light">{% translate "Sign In" %}</a>
+                                <a href="{% url 'account_login' %}" class="btn btn-outline-light">{% translate "登录" %}</a>
                                 {% url 'account_signup' as signup_url_ %}
                                 {% if signup_url_ %}
-                                    <a href="{{ signup_url_ }}" class="btn btn-success">{% translate "Sign Up" %}</a>
+                                    <a href="{{ signup_url_ }}" class="btn btn-success">{% translate "注册" %}</a>
                                 {% endif %}
                             {% endif %}
                         </div>

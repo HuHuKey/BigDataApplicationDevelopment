@@ -1,6 +1,6 @@
 import datetime
 import json
-
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http.response import HttpResponse
 
@@ -8,6 +8,7 @@ from .models import Jdnew
 
 
 # Create your views here.
+@login_required
 def dashboard_view(request):
     try:
         sales_data = Jdnew.objects().all()
@@ -19,12 +20,11 @@ def dashboard_view(request):
     return render(request, 'dash/data.html', context)
 
 
-def post(request):
-    if request.method == "GET":
-        result = {}
-        result['totalSales'] = 10
-
+@login_required
+def start_crawl(request):
+    if request.method == "POST":
+        result = {"crawled_num": 1000}
         result = json.dumps(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
     else:
-        return render(request, "dash/data.html")
+        return render(request, "profile.html")

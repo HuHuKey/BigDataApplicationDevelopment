@@ -1,9 +1,54 @@
 {% extends "allauth/layouts/manage.html" %}
 {% load allauth %}
-{% block head_title %}Profile{% endblock %}
+{% block head_title %}简单查询{% endblock %}
 {% block content %}
     {% element h1 %}
-        Profile
+        电商数据关键词查询
     {% endelement %}
-    <p>Your profile</p>
+    <p>查询界面</p>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <form id="myForm" style="display: flex;width: 100%;" method="post">
+        <label style="width: 70%">
+{#            {% csrf_token %}#}
+            <i class="fas fa-search"></i>
+            <input type="text" name="keywords" value="" placeholder="请输入搜索的关键词"
+                   style="display:inline;height: 35px;width: 90%"/>
+        </label>
+        <input type="submit" class="button" style="width: 60px; height: 25px;margin: auto;text-align: center"
+               value="查询"/>
+    </form>
+    <script>
+        const form = document.getElementById('myForm');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            console.log(data)
+            fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('网络请求失败');
+                    }
+                    return response.json();
+                })
+                .then((jsonData) => {
+                    console.log(jsonData);
+                    // 在这里可以对获取到的JSON数据进行各种操作，如更新页面内容等
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        });
+    </script>
+    <p id="result"></p>
 {% endblock content %}
