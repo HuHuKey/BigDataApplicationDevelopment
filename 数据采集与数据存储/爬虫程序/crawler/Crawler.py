@@ -257,7 +257,7 @@ class JDCrawler(CookieCrawler):
             "goods_css": '#J_goodsList > ul > li',
             "search_bar": 'input[type="text"]',
             "max_page_css": '#J_bottomPage > span.p-skip > em:nth-child(1) > b',
-            'next_page_css': '.fp-next'
+            'next_page_css': 'KEY.RIGHT'
         }
         super().__init__(*args, **kwargs)
 
