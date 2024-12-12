@@ -1,8 +1,6 @@
-<!doctype html>
-<html lang="en">
 {% extends "allauth/layouts/base.html" %}
-{% block content %}
-{% load staticfiles %}
+{% load static %}
+{% block body %}
 <head>
     <meta charset="UTF-8">
     <title>10号</title>
@@ -14,7 +12,7 @@
 <!--    <script src="../dash/js/china.js"></script>-->
 <!--    <script src="../dash/js/data.js"></script>-->
 <!--    <script src="../dash/js/beihai.js"></script>-->
-    <link rel="stylesheet" href="{% static 'cs/index.css' %}">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
     <script src="{% static 'js/jquery.js' %}"></script>
     <script src="{% static 'js/echarts.min.js' %}"></script>
     <script src="{% static 'js/can.js' %}"></script>

@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-pp7fg00gzn!nx09s5z-3=(ztsq+jn3=w3o11_0_1k_xd9a)#x4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.cpolar.top','127.0.0.1']
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -302,11 +302,11 @@ AUTHENTICATION_BACKENDS = (
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'templates/dash')
-STATICFILES_DIRS = {
+STATICFILES_DIRS = [
     ('css', os.path.join(STATIC_ROOT, 'cs')),
-    ('img', os.path.join(STATIC_ROOT, 'images')),
+    ('images', os.path.join(STATIC_ROOT, 'images')),
     ('js', os.path.join(STATIC_ROOT, 'js'))
-}
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
