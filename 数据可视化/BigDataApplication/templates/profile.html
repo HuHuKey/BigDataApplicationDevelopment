@@ -5,50 +5,112 @@
     {% element h1 %}
         电商数据关键词查询
     {% endelement %}
-    <p>查询界面</p>
+    <p>查询界面，在下方搜索框内输入搜索物品，多个物品请用逗号分开</p>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <form id="myForm" style="display: flex;width: 100%;" method="post">
         <label style="width: 70%">
-{#            {% csrf_token %}#}
+            {#            {% csrf_token %}#}
             <i class="fas fa-search"></i>
             <input type="text" name="keywords" value="" placeholder="请输入搜索的关键词"
                    style="display:inline;height: 35px;width: 90%"/>
         </label>
         <input type="submit" class="button" style="width: 60px; height: 25px;margin: auto;text-align: center"
-               value="查询"/>
+               value="搜索"/>
     </form>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script>
-        const form = document.getElementById('myForm');
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            const formData = new FormData(form);
-            const data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
-            console.log(data)
-            fetch('', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify(data)
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error('网络请求失败');
-                    }
-                    return response.json();
-                })
-                .then((jsonData) => {
-                    console.log(jsonData);
-                    // 在这里可以对获取到的JSON数据进行各种操作，如更新页面内容等
-                })
-                .catch((error) => {
-                    console.error(error);
+        $(document).ready(function () {
+            $(".loading").hide()
+            $('#myForm').submit(function (event) {
+                event.preventDefault();
+                var formData = $(this).serializeArray();
+                var data = {};
+                $.each(formData, function (index, element) {
+                    data[element.name] = element.value;
                 });
+                var formDataToSend = $.param(data);
+                $(".loading").show()
+                $.ajax({
+                    url: '',  // 这里替换为实际的请求URL地址
+                    type: 'POST',
+                    contentType: 'application/x-www-form-urlencoded',
+                    data: formDataToSend,
+                    success: function (jsonData) {
+                        console.log(jsonData);
+                        var data = jsonData.datalist;
+                        var html = "共爬取数据" + jsonData.count + "条<br>";
+                        html +=  "<ul>";
+                        for (var i = 0; i < data.name.length; i++) {
+                            let keys = Object.keys(data)
+                            html += "<li>"
+                            for (var j = 0; j < keys.length; j++) {
+                                html += keys[j] + ":" + data.keys[i] + "<br>";
+                            }
+                            html += "</li>"
+                        }
+                        html += "</ul>";
+                        $(".loading").hide()
+                        $('#result').html(html);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error(textStatus + ": " + errorThrown);
+                        var html = "出错啦,请检查输入" + jqXHR.responseText;
+                        $('#result').html(html);
+                    }
+                });
+            });
         });
     </script>
-    <p id="result"></p>
+    <style>
+        .animbox {
+            margin: 50px auto;
+            width: 200px;
+            text-align: center;
+        }
+
+        /*设置各竖条的共有样式*/
+        .animbox > div {
+            background-color: #279fcf;
+            width: 4px;
+            height: 35px;
+            border-radius: 2px;
+            margin: 2px;
+            animation-fill-mode: both;
+            display: inline-block;
+            animation: anim 0.9s 0s infinite cubic-bezier(.11, .49, .38, .78);
+        }
+
+        /*设置动画延迟*/
+        .animbox > :nth-child(2), .animbox > :nth-child(4) {
+            animation-delay: 0.25s !important;
+        }
+
+        .animbox > :nth-child(1), .animbox > :nth-child(5) {
+            animation-delay: 0.5s !important;
+        }
+
+        /*定义动画*/
+        @keyframes anim {
+            0% {
+                transform: scaley(1);
+            }
+            80% {
+                transform: scaley(0.3);
+            }
+            90% {
+                transform: scaley(1);
+            }
+        }
+    </style>
+    <div class="loading">
+            <span style="color:#457895;text-align: center;margin: 50px auto;display: block">正在爬取数据，请稍后...</span>
+        <div class="animbox">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <div id="result"></div>
 {% endblock content %}

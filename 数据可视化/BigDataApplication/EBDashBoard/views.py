@@ -3,6 +3,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http.response import HttpResponse
+from utils.crawler.Crawler import makeCrawl
 
 from .models import Jdnew
 
@@ -23,7 +24,18 @@ def dashboard_view(request):
 @login_required
 def start_crawl(request):
     if request.method == "POST":
-        result = {"crawled_num": 1000}
+        keywords = request.POST.get('keywords')
+        print(keywords)
+        keywords = list(set(keywords.split(',')))
+        print(keywords)
+        crawl = makeCrawl(keywords, 1)
+        result = {
+            "status": "success",
+            "message": "爬取成功",
+            "datalist": crawl[0],
+            "count": crawl[1]
+        }
+        print(result)
         result = json.dumps(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
     else:

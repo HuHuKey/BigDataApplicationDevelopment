@@ -15,7 +15,6 @@ from selenium.webdriver.edge.options import Options
 
 from pyquery import PyQuery as pq
 
-
 class Crawler(metaclass=ABCMeta):
     @abstractmethod
     def searchKeyWords(self, keywords):
@@ -242,7 +241,7 @@ def getTodayDate():
     return datetime.now().date().isoformat()
 
 
-class JDCrawler(HeadlessCrawler):
+class JDCrawler(CookieCrawler):
     def __init__(self, name: str):
         args = (name, 'http://www.jd.com')
         kwargs = {
@@ -257,7 +256,7 @@ class JDCrawler(HeadlessCrawler):
             "goods_css": '#J_goodsList > ul > li',
             "search_bar": 'input[type="text"]',
             "max_page_css": '#J_bottomPage > span.p-skip > em:nth-child(1) > b',
-            'next_page_css': 'KEY.RIGHT'
+            'next_page_css': '.fp-next'
         }
         super().__init__(*args, **kwargs)
 
@@ -333,7 +332,7 @@ class TBCrawler(CookieCrawler):
         data_list[k].append(g('div.content--CUnfXXxv > div > div > a').attr['href'])
 
 
-def makeCrawl(keywords: str, page=30, type="JD") -> (dict, int):
+def makeCrawl(keywords: list[str], page=30, type="JD") -> (dict, int):
     """
     一次执行爬虫程序,
     可选的type列表['JD','TB']
@@ -346,10 +345,11 @@ def makeCrawl(keywords: str, page=30, type="JD") -> (dict, int):
     """
     try:
         switch = {
-            "JD": JDCrawler("JD"),
-            "TB": TBCrawler("TB")
+            "JD": JDCrawler,
+            "TB": TBCrawler
         }
-        crw = switch[type]
+        crw = switch[type]("type")
+        crw.searchKeyWords(keywords)
         dt = crw.getDictOfGoods(page)
         return dt, len(list(dt.values()))
     except Exception as e:
