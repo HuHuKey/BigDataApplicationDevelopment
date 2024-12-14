@@ -11,4 +11,5 @@ urlpatterns = [
     path("task/", views.get_task_status, name="task"),
     # path("api/getData", views.post_data, name="getData"),
     path("task/<str:task_id>", views.get_task_status, name="task_detail"),
+    path("api/data4pie", views.data4pie, name="data4pie"),
 ]

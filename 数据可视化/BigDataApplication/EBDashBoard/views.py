@@ -105,10 +105,27 @@ def post_data(request):
         print(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
 
-
 def post_data_tb(req):
     if req.method == 'POST':
         sales_data_tb = Tbnew.objects().all()[:]
         res = sales_data_tb.to_json()
         res = json.dumps(res)
+        return HttpResponse(res, content_type='application/json;charset=utf8')
+
+
+@login_required
+def data4pie(req):
+    if req.method == 'POST':
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$province",
+                    "count": {
+                        "$sum": 1
+                    }
+                }
+            }
+        ]
+        province_cnt = Tbnew.objects().aggregate(pipeline)
+        res = json.dumps(list(province_cnt))
         return HttpResponse(res, content_type='application/json;charset=utf8')
