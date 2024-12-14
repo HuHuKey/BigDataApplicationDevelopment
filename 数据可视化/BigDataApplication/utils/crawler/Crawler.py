@@ -3,6 +3,7 @@ import types
 import warnings
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+from typing import List, Dict, Any
 
 import pandas as pd
 from selenium import webdriver
@@ -10,10 +11,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .cookies.CookieSaver import CookieSaver
+from utils.crawler.cookies.CookieSaver import CookieSaver
 from selenium.webdriver.edge.options import Options
-
+from utils.crawler.CrawlerData import CrawlerData
 from pyquery import PyQuery as pq
+
 
 class Crawler(metaclass=ABCMeta):
     @abstractmethod
@@ -55,6 +57,7 @@ class BaseCrawler(Crawler):
     max_page_css = None
     next_page_css = None
     options: Options = None
+    data: CrawlerData
 
     def __init__(self, name: str,
                  url: str,
@@ -65,6 +68,7 @@ class BaseCrawler(Crawler):
                  options: Options = None,
                  col2css: dict[str, str] = None,
                  ):
+        self.keywords = None
         self.name = name
         self.url = url
         if options is None:
@@ -76,6 +80,7 @@ class BaseCrawler(Crawler):
                 'supplier': 'div.p-shop > span > a'
             }
         self.col2css = col2css
+        self.data = CrawlerData(col2css)
         self.options = options
         self.goods_css = goods_css
         self.search_bar = search_bar
@@ -101,34 +106,39 @@ class BaseCrawler(Crawler):
             warnings.warn(f"无法找到搜索框，请检查网络:{e}")
             return
         self.randomWait(0.8, 2)
+        self.keywords = keywords
         text_input = self.driver.find_element(By.CSS_SELECTOR, self.search_bar)
         text_input.send_keys(" ".join(keywords))
         text_input.send_keys(webdriver.Keys.RETURN)
 
-    def collectGoodsData(self, goods: str) -> dict[str, list[str]]:
-        data_list = dict(zip(self.col2css.keys(), [[] for _ in self.col2css.keys()]))
+    def collectGoodsData(self, goods: str) -> None:
+        # data_list = dict(zip(self.col2css.keys(), [[] for _ in self.col2css.keys()]))
         for good in goods:
             g = pq(good)
-            self.appendGoodsList(data_list, g)
-        return data_list
+            self.appendGoodsList(g)
+            self.data.nextTuple('jd')
 
-    def appendGoodsList(self, data_list, g):
+    def appendGoodsList(self, g):
         for (k, v) in self.col2css.items():
             if v == '':
                 continue
             elif isinstance(v, str):
                 try:
                     element = g(v)
-                    data_list[k].append(element.text())
+                    # data_list[k].append(element.text())
+                    self.data.write(k, element.text())
                 except Exception as e:
                     print(e)
             elif callable(v):
-                data_list[k].append(v())
+                self.data.write(k, v())
+                # data_list[k].append(v())
             elif isinstance(v, types.FunctionType):
                 if v.__code__.co_argcount == 0:
-                    data_list[k].append(v())
+                    # data_list[k].append(v())
+                    self.data.write(k, v())
                 else:
-                    data_list[k].append(v(g))
+                    self.data.write(k, v(g))
+                    # data_list[k].append(v(g))
 
     def getOnePageOfGoods(self):
         """
@@ -143,7 +153,7 @@ class BaseCrawler(Crawler):
         html = self.driver.page_source
         doc = pq(html)
         goods = doc(self.goods_css).items()
-        return self.collectGoodsData(goods)
+        self.collectGoodsData(goods)
 
     @abstractmethod
     def turnToNextPage(self):
@@ -159,22 +169,22 @@ class BaseCrawler(Crawler):
     def scrollDown(self):
         self.driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
 
-    def getDictOfGoods(self, page_num: int = 30) -> dict[str, list[str]]:
+    def getDictOfGoods(self, page_num: int = 30) -> CrawlerData:
         try:
             WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, self.max_page_css)))
             total_page = self.driver.find_element(By.CSS_SELECTOR, self.max_page_css).text
         except Exception as e:
-            warnings.warn(f"无法找到maxPageNum:{e},使用默认参数total_page=100")
+            warnings.warn(f"无法找到maxPageNum,使用默认参数total_page=100")
             total_page = 100
         total_page = int(total_page)
-        data_list = dict(zip(self.col2css.keys(), [[] for _ in self.col2css.keys()]))
+        # data_list = dict(zip(self.col2css.keys(), [[] for _ in self.col2css.keys()]))
         for _ in range(min(page_num, total_page)):
-            new_goods = self.getOnePageOfGoods()
-            for col in self.col2css.keys():
-                data_list[col].extend(new_goods[col])
+            self.getOnePageOfGoods()
+            # for col in self.col2css.keys():
+            #     data_list[col].extend(new_goods[col])
             self.turnToNextPage()
-        return data_list
+        return self.data
 
     def close(self):
         self.driver.close()
@@ -241,7 +251,7 @@ def getTodayDate():
     return datetime.now().date().isoformat()
 
 
-class JDCrawler(CookieCrawler):
+class JDCrawler(HeadlessCrawler):
     def __init__(self, name: str):
         args = (name, 'http://www.jd.com')
         kwargs = {
@@ -256,7 +266,7 @@ class JDCrawler(CookieCrawler):
             "goods_css": '#J_goodsList > ul > li',
             "search_bar": 'input[type="text"]',
             "max_page_css": '#J_bottomPage > span.p-skip > em:nth-child(1) > b',
-            'next_page_css': '.fp-next'
+            'next_page_css': 'KEY.RIGHT',
         }
         super().__init__(*args, **kwargs)
 
@@ -280,14 +290,17 @@ class JDCrawler(CookieCrawler):
         self.scrollDown()
 
     def scrollDown(self):
-        self.randomWait()
         self.driver.refresh()
         pass
 
-    def appendGoodsList(self, data_list, g):
-        super().appendGoodsList(data_list, g)
+    def appendGoodsList(self, g):
+        super().appendGoodsList(g)
         k = 'href'
-        data_list[k].append("https:" + g('div.p-name.p-name-type-2 > a').attr['href'])
+        v = ("https:" + g('div.p-name.p-name-type-2 > a').attr['href'])
+        self.data.write(k, v)
+        k = 'keywords'
+        v = self.keywords
+        self.data.write(k, v)
 
 
 class TBCrawler(CookieCrawler):
@@ -326,10 +339,14 @@ class TBCrawler(CookieCrawler):
         self.driver.find_element(By.CSS_SELECTOR, self.next_page_css).click()
         self.scrollDown()
 
-    def appendGoodsList(self, data_list, g):
-        super().appendGoodsList(data_list, g)
+    def appendGoodsList(self, g):
+        super().appendGoodsList(g)
         k = 'href'
-        data_list[k].append(g('div.content--CUnfXXxv > div > div > a').attr['href'])
+        v = "https:" + g('div.content--CUnfXXxv > div > div > a').attr['href']
+        self.data.write(k, v)
+        k = 'keywords'
+        v = self.keywords
+        self.data.write(k, v)
 
 
 def makeCrawl(keywords: list[str], page=30, type="JD") -> (dict, int):
@@ -351,6 +368,11 @@ def makeCrawl(keywords: list[str], page=30, type="JD") -> (dict, int):
         crw = switch[type]("type")
         crw.searchKeyWords(keywords)
         dt = crw.getDictOfGoods(page)
-        return dt, len(list(dt.values()))
+        return len(dt)
     except Exception as e:
         raise RuntimeError(e)
+
+
+if __name__ == '__main__':
+    r = makeCrawl(['手机'], 1)
+    print(r)

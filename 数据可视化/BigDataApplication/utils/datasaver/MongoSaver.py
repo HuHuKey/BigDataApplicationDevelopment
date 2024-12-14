@@ -27,3 +27,10 @@ def saveDictToMongoDB(d: dict[str, list[str]], db_name: str, collection: str,
         tuples = [{k: v for k, v in zip(d.keys(), values)} for values in zip(*d.values())]
         for t in tuples:
             collection.update_one(t, {"$set": t}, upsert=True)
+
+
+def upsertTuple(client: MongoClient, db_name: str, collection: str, keys: list[str], t: dict[str, str]):
+    db = client[db_name]
+    collection = db[collection]
+    keymap = {keys[i]: t[keys[i]] for i in range(len(keys))}
+    collection.update_one(keymap, {"$set": t}, upsert=True)
