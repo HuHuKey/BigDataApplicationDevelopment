@@ -251,7 +251,7 @@ def getTodayDate():
     return datetime.now().date().isoformat()
 
 
-class JDCrawler(HeadlessCrawler):
+class JDCrawler(CookieCrawler):
     def __init__(self, name: str):
         args = (name, 'http://www.jd.com')
         kwargs = {
