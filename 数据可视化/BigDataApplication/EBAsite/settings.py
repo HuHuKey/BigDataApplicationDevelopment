@@ -304,9 +304,10 @@ AUTHENTICATION_BACKENDS = (
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'templates/dash')
+STATIC_ROOT = os.path.join(BASE_DIR, 'templates/static')
 STATICFILES_DIRS = [
-    ('css', os.path.join(STATIC_ROOT, 'cs')),
+    ('css', os.path.join(STATIC_ROOT, 'css')),
+    ('fonts', os.path.join(STATIC_ROOT, 'fonts')),
     ('images', os.path.join(STATIC_ROOT, 'images')),
     ('js', os.path.join(STATIC_ROOT, 'js'))
 ]

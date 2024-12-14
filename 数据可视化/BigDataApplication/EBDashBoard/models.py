@@ -1,6 +1,6 @@
 import mongoengine
 from EBAsite.settings import DATABASES
-from utils.ConnectionPool import host,port
+from utils.ConnectionPool import host, port
 
 mongoengine.connect(DATABASES['mongodb']['NAME'], host=host, port=port)
 
@@ -22,3 +22,15 @@ class Jdnew(mongoengine.Document):
     href = mongoengine.StringField()
     supplier = mongoengine.StringField()
     keywords = mongoengine.StringField()
+
+    def __dict__(self):
+        return {
+            "crawl_time": self.crawl_time,
+            "name": self.name,
+            "price": self.price,
+            "commentCnt": self.commentCnt,
+            "grossSales": self.grossSales,
+            "href": self.href,
+            "supplier": self.supplier,
+            "keywords": self.keywords
+        }

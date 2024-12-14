@@ -3,14 +3,16 @@ import warnings
 import pymongo.errors
 from pymongo import MongoClient
 import pandas
+from utils import ConnectionPool
 
 
 def transToListOfLists(d: dict[str, list[str]]):
     return [{k: v for k, v in zip(d.keys(), values)} for values in zip(*d.values())]
 
 
+# "mongodb://25.tcp.cpolar.top:12682/"
 def saveDataFrameToMongoDB(df: pandas.DataFrame, db_name: str, collection: str,
-                           host: str = "mongodb://25.tcp.cpolar.top:12682/"):
+                           host: str = ConnectionPool.str_):
     with MongoClient(host) as client:
         db = client[db_name]
         collection = db[collection]

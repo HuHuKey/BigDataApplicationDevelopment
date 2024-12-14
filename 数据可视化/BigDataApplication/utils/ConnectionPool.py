@@ -1,11 +1,14 @@
 from pymongo import MongoClient
 
-host = '127.0.0.1'
-port = 27017
-# host = '25.tcp.cpolar.top'
-# port = 12682
+# 远程连接
+host = '25.tcp.cpolar.top'
+port = 12682
+# 本地连接
+# host = 'localhost'
+# port = 27017
 min_pool_size = 2
 max_pool_size = 10
+str_ = f'mongodb://{host}:{port}/'
 
 redis_host = r'127.0.0.1'
 redis_port = 6379

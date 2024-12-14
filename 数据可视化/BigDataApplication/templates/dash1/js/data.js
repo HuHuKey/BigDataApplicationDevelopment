@@ -1,4 +1,3 @@
-
 /*各区域产品挂牌数-开始*/
 //牧草产能区域分布数据
 let DataCenter = [{
@@ -30,49 +29,45 @@ let ChanNeng = [{
 //入驻会员实时动态滚动数据
 let RZstatus = ["绿邦创景成功挂牌入驻南方草交所", "晨光金品百花园成功挂牌入驻南方草交所", "绿邦创景成功挂牌入驻南方草交所", "晨光金品百花园成功挂牌入", "绿邦创景成功挂牌入驻南方草交所", "晨光金品百花园成功挂牌入驻南方草交所", "绿邦创景成功挂牌入驻南方草交所", "晨光金品百花园成功挂牌入", "绿邦创景成功挂牌入驻南方草交所", "晨光金品百花园成功挂牌入驻南方草交所", "绿邦创景成功挂牌入驻南方草交所", "晨光金品百花园成功挂牌入"];
 let callMsg = ["绿邦创景卖出500000万元人民币", "更多模板，关注公众号【DreamCoders】回复'BigDataView'即可获取或前往Gitee下载 https://gitee.com/iGaoWei/big-data-view", "猪猪侠买入500000万元人民币"];
-// let CJstatus = [
-//     [{
-//         rank: "ASDA5484561515",
-//         name: "草牧板块",
-//         price: "100头",
-//         origin: "105 - 120公斤/头 ",
-//         supplier: "2018-06-11",
-//         selling: "已成交"
-//     }],
-//     [{
-//         rank: "ASDA5484561515",
-//         name: "三元生猪",
-//         price: "100头",
-//         origin: "105 - 120公斤/头 ",
-//         supplier: "2018-06-11",
-//         selling: "已成交"
-//     }],
-//     [{
-//         rank: "ASDA5484561515",
-//         name: "牛板块",
-//         price: "100头",
-//         origin: "105 - 120公斤/头 ",
-//         supplier: "2018-06-11",
-//         selling: "已成交"
-//     }],
-//     [{
-//         rank: "ASDA5484561515",
-//         name: "羊板块",
-//         price: "100头",
-//         origin: "105 - 120公斤/头 ",
-//         supplier: "2018-06-11",
-//         selling: "已成交"
-//     }]
-// ];
+
 let CJstatus = [];
-sales_data.forEach(sale => {
-    const item = {
-        commentNum: sale.commentCnt,
-        name: sale.name,
-        price: sale.price,
-        totalSale: sale.grossSales,
-        supplier: sale.supplier,
-        href: sale.href
-    };
-    CJstatus.push(item);
+$.ajax({
+    url: 'api/getData',  // 这里替换为实际的请求URL地址
+    type: 'POST',
+    data: '',
+    contentType: 'application/x-www-form-urlencoded',
+    success: function (jsonData) {
+        // console.log(jsonData)
+        jsonData.forEach(sale => {
+            let item = [{
+                commentNum: sale.commentCnt,
+                name: sale.name,
+                price: sale.price,
+                totalSale: sale.grossSales,
+                supplier: sale.supplier,
+                href: sale.href
+            }];
+            // console.log(item)
+            CJstatus.push(item);
+        });
+        for (var i = 0; i < CJstatus[1].length; i++) {
+            $(".liushuihaoul .moveul").html((index, html) => {
+                return html += `<li>
+				<span>${CJstatus[1][i].commentNum}</span>
+				<span>${CJstatus[1][i].name}</span>
+				<span>${CJstatus[1][i].price}</span>
+				<span>${CJstatus[1][i].totalSale}</span>
+				<span>${CJstatus[1][i].supplier}</span>
+				<span>${CJstatus[1][i].href}</span>
+				</li>`
+            })
+        }
+
+
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+        // console.error(textStatus + ": " + errorThrown);
+        // var html = "出错啦,请检查输入" + jqXHR.responseText;
+        // $('#result').html(html);
+    }
 });

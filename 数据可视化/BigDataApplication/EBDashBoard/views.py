@@ -5,6 +5,8 @@ from django.shortcuts import render
 from django.http.response import HttpResponse
 from EBAsite.task import crawl, add
 from django_celery_results.models import TaskResult
+from utils.crawler.Crawler import makeCrawl
+from django.core import serializers
 
 from .models import Jdnew
 
@@ -62,3 +64,17 @@ def get_task_status(request):
             'tasks': task,
         }
         return render(request, 'task/TaskStatus.html', result)
+
+@login_required
+def post_data(request):
+    if request.method == "POST":
+        sales_data = Jdnew.objects().all()[:]
+        result = []
+        for data in sales_data:
+            d = data.__dict__()
+            d["crawl_time"] = str(d["crawl_time"])
+            result.append(d)
+        # print(result)
+        result = json.dumps(result)
+        print(result)
+        return HttpResponse(result, content_type='application/json;charset=utf8')
