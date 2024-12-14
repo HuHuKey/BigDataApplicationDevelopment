@@ -47,3 +47,4 @@ class Tbnew(mongoengine.Document):
     province = mongoengine.StringField()
     supplier = mongoengine.StringField()
     keywords = mongoengine.StringField()
+    city = mongoengine.StringField()

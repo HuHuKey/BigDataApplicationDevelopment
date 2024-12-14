@@ -7,7 +7,6 @@ from EBAsite.task import crawl, add
 from django_celery_results.models import TaskResult
 from utils.crawler.Crawler import makeCrawl
 from django.core import serializers
-from collections import defaultdict
 
 from .models import Jdnew, Tbnew
 
@@ -16,8 +15,8 @@ from .models import Jdnew, Tbnew
 @login_required
 def dashboard_view(request):
     try:
-        sales_data = Jdnew.objects().all()[:]
-        sales_data_tb = Tbnew.objects().all()[:]
+        sales_data = Jdnew.objects().all().limit(30)
+        sales_data_tb = Tbnew.objects().all().limit(30)
         context = {'sales_data': sales_data,
                    'sales_data_tb': sales_data_tb
                    }
@@ -32,12 +31,7 @@ def dashboard_view(request):
         length_jd = len(sales_data)
         context['length'] = length_jd
         # 统计每个省份出现的次数
-        province_cnt = defaultdict(int)
-        for data in sales_data_tb:
-            province_cnt[data.province] += 1
-        context['province_cnt'] = province_cnt
-        # all_sales_data = SalesData.objects()
-        # print("查询到的数据数量:", len(all_sales_data))  # 添加调试输出
+
     except Exception as e:
         context = {'error_message': f'数据库查询出现问题，请稍后再试{e}'}
     return render(request, 'dash/index.html', context)
@@ -95,9 +89,28 @@ def post_data(request):
         print(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
 
+
 def post_data_tb(req):
     if req.method == 'POST':
         sales_data_tb = Tbnew.objects().all()[:]
         res = sales_data_tb.to_json()
         res = json.dumps(res)
+        return HttpResponse(res, content_type='application/json;charset=utf8')
+
+
+@login_required
+def data4pie(req):
+    if req.method == 'POST':
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$province",
+                    "count": {
+                        "$sum": 1
+                    }
+                }
+            }
+        ]
+        province_cnt = Tbnew.objects().aggregate(pipeline)
+        res = json.dumps(list(province_cnt))
         return HttpResponse(res, content_type='application/json;charset=utf8')

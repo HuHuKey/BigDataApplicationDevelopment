@@ -513,75 +513,97 @@
                 <h3>商品地区分布数据</h3>
                 <div class="biaoge" style="width:100%; height:30vh" id="chartmain_bing"></div>
                 <script type="text/javascript">
-                    let regions = [];
-                </script>
-                {% for data in sales_data_tb %}
-                <script type="text/javascript">
-                    regions.push("{{data.province}}")
-                </script>
-                {% endfor %}
-                <script type="text/javascript">
+                    function pie_chart(regions, data) {
+                        var option = {
+                            title: {
+                                text: '数据情况统计',
+                                subtext: '',
+                                left: 'right',
+                                textStyle: {
+                                    color: '#fff',
+                                    fontSize: 12
+                                }
+                            },
+                            tooltip: {
+                                trigger: 'item',
+                                formatter: '{a} <br/>{b} : {c} ({d}%)'
+                            },
+                            legend: {
+                                // orient: 'vertical',
+                                // top: 'middle',
+                                type: 'scroll',
+                                orient: 'vertical',
+                                right: 10,
+                                top: 40,
+                                bottom: 20,
+                                left: 'right',
+                                data: regions,
+                                textStyle: {
+                                    color: '#fff',
+                                    fontSize: 12
+                                }
 
-                    option = {
-                        title: {
-                            text: '数据情况统计',
-                            subtext: '',
-                            left: 'right',
-                            textStyle: {
-                                color: '#fff',
-                                fontSize: 12
-                            }
-                        },
-                        tooltip: {
-                            trigger: 'item',
-                            formatter: '{a} <br/>{b} : {c} ({d}%)'
-                        },
-                        legend: {
-                            // orient: 'vertical',
-                            // top: 'middle',
-                            type: 'scroll',
-                            orient: 'vertical',
-                            right: 10,
-                            top: 40,
-                            bottom: 20,
-                            left: 'right',
-                            data: regions,
-                            textStyle: {
-                                color: '#fff',
-                                fontSize: 12
-                            }
-
-                        },
-                        grid: {
-                            x: '-10%',
-                            y: 40,
-                            x2: 20,
-                            y2: 20,
-                        },
-                        color: ['#09d0fb', '#f88cfb', '#95f8fe', '#f9f390', '#ecfeb7'],
-                        series: [
-                            {
-                                type: 'pie',
-                                radius: '65%',
-                                center: ['50%', '50%'],
-                                selectedMode: 'single',
-                                data: [{% for data in sales_data_tb %}
-                        {value: {{ data.province_count }}, name: "{{ data.province }}"
-                        }{% if not forloop.last %},{% endif %}{% endfor %}],
-                                emphasis: {
-                                    itemStyle: {
-                                        shadowBlur: 10,
-                                        shadowOffsetX: 0,
-                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            },
+                            grid: {
+                                x: '-10%',
+                                y: 40,
+                                x2: 20,
+                                y2: 20,
+                            },
+                            color: ['#09d0fb', '#f88cfb', '#95f8fe', '#f9f390', '#ecfeb7'],
+                            series: [
+                                {
+                                    type: 'pie',
+                                    radius: '65%',
+                                    center: ['50%', '50%'],
+                                    selectedMode: 'single',
+                                    data: data,
+                                    emphasis: {
+                                        itemStyle: {
+                                            shadowBlur: 10,
+                                            shadowOffsetX: 0,
+                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                        }
                                     }
                                 }
+                            ]
+                        };
+                        console.log(regions)
+                        console.log(data)
+                        //获取dom容器
+                        var myChart = echarts.init(document.getElementById('chartmain_bing'));
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(option);
+                    }
+
+                    function doPieChartAjax() {
+                        $.ajax({
+                            url: "api/data4pie",
+                            type: 'POST',
+                            success: function (data) {
+                                console.log(data)
+                                let regions = []
+                                let pie = []
+                                for (let d of data) {
+                                    console.log(d)
+                                    regions.push(d._id)
+                                    let item = {
+                                        'name': d._id,
+                                        'value': d.count,
+                                    }
+                                    pie.push(item)
+                                }
+                                pie_chart(regions, pie)
                             }
-                        ]
-                    };
-                    //获取dom容器
-                    var myChart = echarts.init(document.getElementById('chartmain_bing'));
-                    // 使用刚指定的配置项和数据显示图表。
-                    myChart.setOption(option);
+                        })
+                    }
+
+                    $(document).ready(
+                        function () {
+                            doPieChartAjax()
+                            setInterval(doPieChartAjax, 60000)
+                        }
+                    )
 
                 </script>
                 <span class="border_bg_leftTop"></span>
