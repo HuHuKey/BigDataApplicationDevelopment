@@ -7,5 +7,7 @@ urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
     path("start/", views.start_crawl, name="profile"),
     path("start/crawl", views.start_crawl, name="crawl"),
-    path(r'^dash/(?P<path>.*)$',serve,{'document_root': settings.STATIC_ROOT}),
+    # path(r'^dash/(?P<path>.*)$',serve,{'document_root': settings.STATIC_ROOT}),
+    path("task/", views.get_task_status, name="task"),
+    path("task/<str:task_id>", views.get_task_status, name="task_detail"),
 ]

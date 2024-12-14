@@ -3,7 +3,8 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http.response import HttpResponse
-from utils.crawler.Crawler import makeCrawl
+from EBAsite.task import crawl, add
+from django_celery_results.models import TaskResult
 
 from .models import Jdnew
 
@@ -25,19 +26,39 @@ def dashboard_view(request):
 def start_crawl(request):
     if request.method == "POST":
         keywords = request.POST.get('keywords')
-        print(keywords)
         keywords = list(set(keywords.split(',')))
-        print(keywords)
-        crawl = makeCrawl(keywords, 1)
+        page = request.POST.get('page')
+        type = request.POST.get('type')
+        # async_crawl = crawl.delay(keywords, 1)
+        task = crawl.delay(keywords, int(page), type)
+        # print(keywords, page, type)
+        # task = add.delay(1, 2)
         result = {
             "status": "success",
-            "message": "爬取成功",
-            "datalist": crawl[0],
-            "count": crawl[1]
+            "message": "成功创建爬虫任务",
+            "id": task.task_id
         }
-        print(result)
         result = json.dumps(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
     else:
         return render(request, "profile.html")
 
+
+@login_required
+def get_task_status(request):
+    if request.method == "GET":
+        task = TaskResult.objects.all()
+        all = task.count()
+        success = task.filter(status="SUCCESS").count()
+        failed = task.filter(status="FAILURE").count()
+        pending = task.filter(status="PENDING").count()
+        active = task.filter(status="ACTIVE").count()
+        result = {
+            'all': all,
+            'success': success,
+            'failed': failed,
+            'pending': pending,
+            'active': active,
+            'tasks': task,
+        }
+        return render(request, 'task/TaskStatus.html', result)

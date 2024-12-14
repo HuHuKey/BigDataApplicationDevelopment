@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os.path
 from pathlib import Path
+from utils.ConnectionPool import url,redis_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -171,6 +172,8 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.feishu",
     "allauth.usersessions",
     "allauth.headless",
+    'django_celery_results',
+    'django_celery_beat'
 ]
 
 MIDDLEWARE = [
@@ -214,7 +217,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     },
     'mongodb': {
-        'ENGINE': 'mongoengine.django.storage.StorageEngine',
+        'ENGINE': None,
         'NAME': 'E_Business_data',
     }
 }
@@ -311,3 +314,22 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ---------------- celery 相关配置 ----------------------
+# Broker配置，使用redis作为消息中间件
+BROKER_URL = redis_url + '/0'
+# BACKEND配置，使用MongoDB作为结果仓库
+CELERY_RESULT_BACKEND = 'django-db'
+# 指定 Celery 能够接受的内容类型列表
+ACCEPT_CONTENT = ['json']
+# 任务将以json格式进行序列化
+TASK_SERIALIZER = 'json'
+# 结果以json格式进行序列化存储或传输
+RESULT_SERIALIZER = 'json'
+# 最大并行数量
+CELERYD_CONCURRENCY = 3
+# 任务结果过期时间(单位:秒)
+TASK_RESULT_EXPIRES = 60 * 60 * 24
+# 时区配置
+TIMEZONE = "Asia/Shanghai"
+# 支持数据库django-db和缓存django-cache存储任务状态及结果
