@@ -594,7 +594,7 @@
                             <li>标题</li>
                             <li>价格</li>
                             <li>评论数</li>
-                            <li>销售额</li>
+                            <li>爬取时间</li>
                             <li>商家</li>
                             <li>链接</li>
                         </ul>
@@ -603,14 +603,14 @@
                                 <script type="text/javascript">
 
                                 </script>
-                                {% for data in sales_data %}
+                                {% for data in origin_jd %}
                                     <ul class="ul_con">
                                         <li>{{ data.name|slice:3 }}...</li>
                                         <li>{{ data.price }}</li>
                                         <li>{{ data.commentCnt }}</li>
-                                        <li>{{ data.grossSales }}</li>
+                                        <li>{{ data.crawl_time|slice:"-5:" }}</li>
                                         <li>{{ data.supplier|slice:3 }}...</li>
-                                        <li>{{ data.href|slice:":-3" }}...</li>
+                                        <li>...{{ data.href|slice:"-10:-5" }}...</li>
                                     </ul>
                                 {% endfor %}
 

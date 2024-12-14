@@ -8,18 +8,22 @@ from mongoengine import Q
 from EBAsite.task import crawl, add
 from django_celery_results.models import TaskResult
 
-from .models import Jdnew, Tbnew,Jd
+from .models import Jdnew, Tbnew, Jd
 
 
 # Create your views here.
 @login_required
 def dashboard_view(request):
     try:
-        sales_data = Jdnew.objects().all()[:]
+        sales_data = Jdnew.objects().order_by('-crawlTime').limit(30)
         sales_data_tb = Tbnew.objects().all()[:]
-        context = {'sales_data': sales_data,
-                   'sales_data_tb': sales_data_tb
-                   }
+        origin_jd = Jd.objects().order_by("-CrawlTime").limit(30)
+        context = {
+            'sales_data': sales_data,
+            'sales_data_tb': sales_data_tb,
+            'origin_jd': origin_jd
+        }
+        print(origin_jd.to_json())
         # 找到grossSales最大，price最低，commentCnt最多的对应的数据
         gross_sale_max = max(sales_data, key=lambda x: x.grossSales)
         price_min = min(sales_data, key=lambda x: x.price)
@@ -31,9 +35,8 @@ def dashboard_view(request):
         length_jd = len(sales_data)
         context['length'] = length_jd
         # 统计每个省份出现的次数
-        sales_data = Jdnew.objects().order_by('-crawlTime').limit(30)
-        print(sales_data.to_json())
-        context = {'sales_data': sales_data}
+
+        # print(sales_data.to_json())
         # all_sales_data = SalesData.objects()
         # print("查询到的数据数量:", len(all_sales_data))  # 添加调试输出
     except Exception as e:
@@ -41,7 +44,7 @@ def dashboard_view(request):
     return render(request, 'dash/index.html', context)
 
 
-def keywords_view(request,keyword):
+def keywords_view(request, keyword):
     try:
         sales_data = Jdnew.objects(keywords=keyword)[:30]
         context = {'sales_data': sales_data}
@@ -101,6 +104,7 @@ def post_data(request):
         result = sales_data.to_json()
         print(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
+
 
 def post_data_tb(req):
     if req.method == 'POST':
