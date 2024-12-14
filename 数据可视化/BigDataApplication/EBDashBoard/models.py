@@ -19,6 +19,7 @@ class Jdnew(mongoengine.Document):
     price = mongoengine.FloatField(db_field="price")
     commentCnt = mongoengine.IntField(db_field="commentCount")
     grossSales = mongoengine.IntField(db_field="gross sales")
+    province = mongoengine.StringField()
     href = mongoengine.StringField()
     supplier = mongoengine.StringField()
     keywords = mongoengine.StringField()
@@ -30,6 +31,7 @@ class Jdnew(mongoengine.Document):
             "price": self.price,
             "commentCnt": self.commentCnt,
             "grossSales": self.grossSales,
+            "province": self.province,
             "href": self.href,
             "supplier": self.supplier,
             "keywords": self.keywords
@@ -43,5 +45,16 @@ class Jd(mongoengine.Document):
     commentCnt = mongoengine.IntField(db_field="commentCount")
     grossSales = mongoengine.IntField(db_field="gross sales")
     href = mongoengine.StringField()
+    supplier = mongoengine.StringField()
+    keywords = mongoengine.StringField()
+
+
+class Tbnew(mongoengine.Document):
+    crawl_time = mongoengine.DateTimeField(db_field="crawlTime")
+    name = mongoengine.StringField()
+    price = mongoengine.FloatField(db_field="price")
+    commentCnt = mongoengine.IntField(db_field="commentCount")
+    grossSales = mongoengine.IntField(db_field="gross sales")
+    province = mongoengine.StringField()
     supplier = mongoengine.StringField()
     keywords = mongoengine.StringField()

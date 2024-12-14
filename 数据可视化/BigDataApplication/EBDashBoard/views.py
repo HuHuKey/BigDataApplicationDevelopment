@@ -8,14 +8,29 @@ from mongoengine import Q
 from EBAsite.task import crawl, add
 from django_celery_results.models import TaskResult
 
-
-from .models import Jdnew,Jd
+from .models import Jdnew, Tbnew,Jd
 
 
 # Create your views here.
 @login_required
 def dashboard_view(request):
     try:
+        sales_data = Jdnew.objects().all()[:]
+        sales_data_tb = Tbnew.objects().all()[:]
+        context = {'sales_data': sales_data,
+                   'sales_data_tb': sales_data_tb
+                   }
+        # 找到grossSales最大，price最低，commentCnt最多的对应的数据
+        gross_sale_max = max(sales_data, key=lambda x: x.grossSales)
+        price_min = min(sales_data, key=lambda x: x.price)
+        comment_cnt_max = max(sales_data, key=lambda x: x.commentCnt)
+        context['gross_sale_max'] = gross_sale_max
+        context['price_min'] = price_min
+        context['comment_cnt_max'] = comment_cnt_max
+        # sales_data爬取的数据条数
+        length_jd = len(sales_data)
+        context['length'] = length_jd
+        # 统计每个省份出现的次数
         sales_data = Jdnew.objects().order_by('-crawlTime').limit(30)
         print(sales_data.to_json())
         context = {'sales_data': sales_data}
@@ -35,6 +50,7 @@ def keywords_view(request,keyword):
     except Exception as e:
         context = {'error_message': f'数据库查询出现问题，请稍后再试{e}'}
     return render(request, 'dash/index.html', context)
+
 
 @login_required
 def start_crawl(request):
@@ -77,6 +93,7 @@ def get_task_status(request):
         }
         return render(request, 'task/TaskStatus.html', result)
 
+
 @login_required
 def post_data(request):
     if request.method == "POST":
@@ -84,3 +101,10 @@ def post_data(request):
         result = sales_data.to_json()
         print(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
+
+def post_data_tb(req):
+    if req.method == 'POST':
+        sales_data_tb = Tbnew.objects().all()[:]
+        res = sales_data_tb.to_json()
+        res = json.dumps(res)
+        return HttpResponse(res, content_type='application/json;charset=utf8')

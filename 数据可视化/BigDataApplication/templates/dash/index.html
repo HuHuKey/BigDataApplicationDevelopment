@@ -38,9 +38,11 @@
             opacity: 0.9;
             transition: all 0.5s ease-in-out;
         }
-        a div.button span{
+
+        a div.button span {
             z-index: -1;
         }
+
         a div.button:hover {
             opacity: 1;
             scale: 1.05;
@@ -606,7 +608,7 @@
                                         <li>{{ data.name|slice:3 }}...</li>
                                         <li>{{ data.price }}</li>
                                         <li>{{ data.commentCnt }}</li>
-                                        <li>{{ data.crawTime }}</li>
+                                        <li>{{ data.grossSales }}</li>
                                         <li>{{ data.supplier|slice:3 }}...</li>
                                         <li>{{ data.href|slice:":-3" }}...</li>
                                     </ul>
