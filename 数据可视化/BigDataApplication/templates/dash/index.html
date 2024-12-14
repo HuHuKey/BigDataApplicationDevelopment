@@ -38,9 +38,11 @@
             opacity: 0.9;
             transition: all 0.5s ease-in-out;
         }
-        a div.button span{
+
+        a div.button span {
             z-index: -1;
         }
+
         a div.button:hover {
             opacity: 1;
             scale: 1.05;
@@ -67,9 +69,14 @@
                 <ul>
                     <li>
                         <div class="liIn">
-                            <h3>这里是标题1</h3>
-                            <p class="shu"><span class="shu1">6890.69</span><i>元</i></p>
-                            <div class="zi"><span class="span1">小标题：文字</span><span>小标题：文字</span></div>
+                            <h3>销量最多</h3>
+                            <p class="shu"><span class="shu1">{{gross_sale_max.grossSales}}</span><i>元</i></p>
+                            <div class="zi"><span class="span1">单价：{{gross_sale_max.price}}</span><i>元</i><br>
+                                <span>评论数：{{gross_sale_max.commentCnt}}</span><i>条</i><br>
+                                <span>标题：{{gross_sale_max.name}}</span><br>
+                                <span>商品链接：<a href="{{gross_sale_max.href}}"
+                                                  target="_blank">{{gross_sale_max.href}}</a></span>
+                            </div>
                             <span class="border_bg_leftTop"></span>
                             <span class="border_bg_rightTop"></span>
                             <span class="border_bg_leftBottom"></span>
@@ -78,9 +85,14 @@
                     </li>
                     <li>
                         <div class="liIn">
-                            <h3>这里是标题2</h3>
-                            <p class="shu"><span class="shu2">6090.99</span><i>元</i></p>
-                            <div class="zi"><span class="span1">小标题：文字</span><span>小标题：文字</span></div>
+                            <h3>单价最低</h3>
+                            <p class="shu"><span class="shu2">{{price_min.price}}</span><i>元</i></p>
+                            <div class="zi"><span class="span1">销售额：{{price_min.grossSales}}</span><i>元</i><br>
+                                <span>评论数：{{price_min.commentCnt}}</span><i>条</i><br>
+                                <span>标题：{{price_min.name}}</span><br>
+                                <span>商品链接：<a href="{{price_min.href}}"
+                                                  target="_blank">{{price_min.href}}</a></span>
+                            </div>
                             <span class="border_bg_leftTop"></span>
                             <span class="border_bg_rightTop"></span>
                             <span class="border_bg_leftBottom"></span>
@@ -89,9 +101,13 @@
                     </li>
                     <li>
                         <div class="liIn">
-                            <h3>这里是标题3</h3>
-                            <p class="shu"><span class="shu3">2890.39</span><i>元</i></p>
-                            <div class="zi"><span class="span1">小标题：文字</span><span>小标题：文字</span></div>
+                            <h3>评价最多</h3>
+                            <p class="shu"><span class="shu3">{{comment_cnt_max.commentCnt}}</span><i>条</i></p>
+                            <div class="zi"><span class="span1">单价：{{comment_cnt_max.price}}</span><i>元</i><br>
+                                <span>销售额：{{comment_cnt_max.grossSales}}</span><i>元</i><br>
+                                <span>标题：{{comment_cnt_max.name}}</span><br>
+                                <span>商品链接：<a href="{{comment_cnt_max.href}}" target="_blank">{{comment_cnt_max.href}}</a></span>
+                            </div>
                             <span class="border_bg_leftTop"></span>
                             <span class="border_bg_rightTop"></span>
                             <span class="border_bg_leftBottom"></span>
@@ -100,9 +116,9 @@
                     </li>
                     <li>
                         <div class="liIn">
-                            <h3>这里是标题4</h3>
-                            <p class="shu"><span class="shu4">7590.15</span><i>元</i></p>
-                            <div class="zi"><span class="span1">小标题：文字</span><span>小标题：文字</span></div>
+                            <h3>共计爬取数据</h3>
+                            <p class="shu"><span class="shu4">{{length}}</span><i>条</i></p>
+                            <div class="zi"><span class="span1">幻梦数据团为您倾力打造</span></div>
                             <span class="border_bg_leftTop"></span>
                             <span class="border_bg_rightTop"></span>
                             <span class="border_bg_leftBottom"></span>
@@ -232,18 +248,6 @@
                                 }
                             ]
                         };
-
-                        // Enable data zoom when user click bar.
-                        /*var zoomSize = 6;
-                        myChart.on('click', function (params) {
-                            console.log(dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)]);
-                            myChart.dispatchAction({
-                                type: 'dataZoom',
-                                startValue: dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)],
-                                endValue: dataAxis[Math.min(params.dataIndex + zoomSize / 2, data.length - 1)]
-                            });
-                        });*/
-
                         //获取dom容器
                         var myChart = echarts.init(document.getElementById('chartmain'));
                         // 使用刚指定的配置项和数据显示图表。
@@ -502,11 +506,22 @@
         </div>
     </div>
     <div class="rightMain">
+
+        <!--        地区数据开始-->
         <div class="rightMain_top">
             <div class="rightMain_topIn">
-                <h3>这里是标题</h3>
+                <h3>商品地区分布数据</h3>
                 <div class="biaoge" style="width:100%; height:30vh" id="chartmain_bing"></div>
                 <script type="text/javascript">
+                    let regions = [];
+                </script>
+                {% for data in sales_data_tb %}
+                <script type="text/javascript">
+                    regions.push("{{data.province}}")
+                </script>
+                {% endfor %}
+                <script type="text/javascript">
+
                     option = {
                         title: {
                             text: '数据情况统计',
@@ -530,7 +545,7 @@
                             top: 40,
                             bottom: 20,
                             left: 'right',
-                            data: ['西凉', '益州', '兖州', '荆州', '幽州'],
+                            data: regions,
                             textStyle: {
                                 color: '#fff',
                                 fontSize: 12
@@ -550,16 +565,9 @@
                                 radius: '65%',
                                 center: ['50%', '50%'],
                                 selectedMode: 'single',
-                                data: [
-                                    {
-                                        value: 1548, name: '幽州',
-
-                                    },
-                                    {value: 535, name: '荆州'},
-                                    {value: 510, name: '兖州'},
-                                    {value: 634, name: '益州'},
-                                    {value: 735, name: '西凉'}
-                                ],
+                                data: [{% for data in sales_data_tb %}
+                        {value: {{ data.province_count }}, name: "{{ data.province }}"
+                        }{% if not forloop.last %},{% endif %}{% endfor %}],
                                 emphasis: {
                                     itemStyle: {
                                         shadowBlur: 10,
@@ -582,6 +590,7 @@
                 <span class="border_bg_rightBottom"></span>
             </div>
         </div>
+        <!--        地区数据结束-->
         <!--商品滚动条-->
         <div class="rightMain_bottom">
             <div class="rightMain_bottomIn">
@@ -602,14 +611,14 @@
 
                                 </script>
                                 {% for data in sales_data %}
-                                    <ul class="ul_con">
-                                        <li>{{ data.name|slice:3 }}...</li>
-                                        <li>{{ data.price }}</li>
-                                        <li>{{ data.commentCnt }}</li>
-                                        <li>{{ data.grossSales }}</li>
-                                        <li>{{ data.supplier|slice:3 }}...</li>
-                                        <li>{{ data.href|slice:":-3" }}...</li>
-                                    </ul>
+                                <ul class="ul_con">
+                                    <li>{{ data.name|slice:3 }}...</li>
+                                    <li>{{ data.price }}</li>
+                                    <li>{{ data.commentCnt }}</li>
+                                    <li>{{ data.grossSales }}</li>
+                                    <li>{{ data.supplier|slice:3 }}...</li>
+                                    <li>{{ data.href|slice:":-3" }}...</li>
+                                </ul>
                                 {% endfor %}
 
                             </div>
