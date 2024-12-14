@@ -24,9 +24,34 @@
     </script>
     <script src="{% static 'js/echarts.min.js' %}"></script>
     <!--    <script src="js/echarts.min.js"></script>-->
+    <style>
+        a div.button{
+            position: absolute;
+            padding:10px;
+            margin:35px 50px;
+            border: 10px whitesmoke;
+            box-shadow: 1px 1px 10px black;
+            border-radius: 10px;
+            font-weight: bold;
+            background-color: #030F32;
+            color: floralwhite;
+            opacity: 0.4;
+            transition: all 1s ease-in-out;
+        }
+        a div.button:hover{
+            opacity: 1;
+            scale: 1.05;
+        }
+    </style>
 </head>
 
 <body>
+
+<a href="start/">
+    <div class="button" style="">
+        返回用户管理界面
+    </div>
+</a>
 <div class="bg">
     <div class="title">智能大屏数据中心</div>
     <div class="leftMain">
@@ -570,14 +595,14 @@
 
                                 </script>
                                 {% for data in sales_data %}
-                                <ul class="ul_con">
-                                    <li>{{data.name|slice:3}}...</li>
-                                    <li>{{data.price}}</li>
-                                    <li>{{data.commentCnt}}</li>
-                                    <li>{{data.grossSales}}</li>
-                                    <li>{{data.supplier|slice:3}}...</li>
-                                    <li>{{data.href|slice:":-3"}}...</li>
-                                </ul>
+                                    <ul class="ul_con">
+                                        <li>{{ data.name|slice:3 }}...</li>
+                                        <li>{{ data.price }}</li>
+                                        <li>{{ data.commentCnt }}</li>
+                                        <li>{{ data.grossSales }}</li>
+                                        <li>{{ data.supplier|slice:3 }}...</li>
+                                        <li>{{ data.href|slice:":-3" }}...</li>
+                                    </ul>
                                 {% endfor %}
 
                             </div>
