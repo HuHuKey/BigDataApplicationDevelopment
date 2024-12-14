@@ -2,7 +2,6 @@
 <html lang="en" data-bs-theme="auto">
 
 {% load static %}
-{#{% block body %}#}
 <head>
     <!--更多资源：https://gitee.com/iGaoWei/big-data-view -->
     <meta charset="utf-8">
@@ -551,6 +550,7 @@
                 <span class="border_bg_rightBottom"></span>
             </div>
         </div>
+        <!--商品滚动条-->
         <div class="rightMain_bottom">
             <div class="rightMain_bottomIn">
                 <h3>商品信息</h3>
@@ -566,90 +566,20 @@
                         </ul>
                         <div class="ul_list">
                             <div class="ul_listIn">
+                                <script type="text/javascript">
+
+                                </script>
+                                {% for data in sales_data %}
                                 <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>11</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
+                                    <li>{{data.name|slice:3}}...</li>
+                                    <li>{{data.price}}</li>
+                                    <li>{{data.commentCnt}}</li>
+                                    <li>{{data.grossSales}}</li>
+                                    <li>{{data.supplier|slice:3}}...</li>
+                                    <li>{{data.href|slice:":-3"}}...</li>
                                 </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>12</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>13</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>更多</li>
-                                    <li>精美大屏</li>
-                                    <li>关注</li>
-                                    <li>公众号</li>
-                                    <li>DreamCoders</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>15</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>16</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>11</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>12</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>13</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>14</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>15</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
-                                <ul class="ul_con">
-                                    <li>张三</li>
-                                    <li>16</li>
-                                    <li>类别一</li>
-                                    <li>类别二</li>
-                                    <li>类别三</li>
-                                </ul>
+                                {% endfor %}
+
                             </div>
                         </div>
                     </div>
@@ -684,5 +614,5 @@
 </script>
 <!--大屏-->
 </body>
-{#{% endblock %}#}
+
 </html>
