@@ -25,20 +25,23 @@
     <script src="{% static 'js/echarts.min.js' %}"></script>
     <!--    <script src="js/echarts.min.js"></script>-->
     <style>
-        a div.button{
+        a div.button {
             position: absolute;
-            padding:10px;
-            margin:35px 50px;
+            padding: 10px;
+            margin: 35px 50px;
             border: 10px whitesmoke;
             box-shadow: 1px 1px 10px black;
             border-radius: 10px;
             font-weight: bold;
-            background-color: #030F32;
+            background: transparent;
             color: floralwhite;
-            opacity: 0.4;
-            transition: all 1s ease-in-out;
+            opacity: 0.9;
+            transition: all 0.5s ease-in-out;
         }
-        a div.button:hover{
+        a div.button span{
+            z-index: -1;
+        }
+        a div.button:hover {
             opacity: 1;
             scale: 1.05;
         }
@@ -49,7 +52,11 @@
 
 <a href="start/">
     <div class="button" style="">
-        返回用户管理界面
+        <p>返回用户管理界面</p>
+        <span class="border_bg_leftTop"></span>
+        <span class="border_bg_rightTop"></span>
+        <span class="border_bg_leftBottom"></span>
+        <span class="border_bg_rightBottom"></span>
     </div>
 </a>
 <div class="bg">
