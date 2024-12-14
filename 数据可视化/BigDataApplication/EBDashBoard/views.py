@@ -3,19 +3,21 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http.response import HttpResponse
+from mongoengine import Q
+
 from EBAsite.task import crawl, add
 from django_celery_results.models import TaskResult
-from utils.crawler.Crawler import makeCrawl
-from django.core import serializers
 
-from .models import Jdnew
+
+from .models import Jdnew,Jd
 
 
 # Create your views here.
 @login_required
 def dashboard_view(request):
     try:
-        sales_data = Jdnew.objects().all()[:30]
+        sales_data = Jdnew.objects().order_by('-crawlTime').limit(30)
+        print(sales_data.to_json())
         context = {'sales_data': sales_data}
         # all_sales_data = SalesData.objects()
         # print("查询到的数据数量:", len(all_sales_data))  # 添加调试输出
@@ -23,6 +25,16 @@ def dashboard_view(request):
         context = {'error_message': f'数据库查询出现问题，请稍后再试{e}'}
     return render(request, 'dash/index.html', context)
 
+
+def keywords_view(request,keyword):
+    try:
+        sales_data = Jdnew.objects(keywords=keyword)[:30]
+        context = {'sales_data': sales_data}
+        # all_sales_data = SalesData.objects()
+        # print("查询到的数据数量:", len(all_sales_data))  # 添加调试输出
+    except Exception as e:
+        context = {'error_message': f'数据库查询出现问题，请稍后再试{e}'}
+    return render(request, 'dash/index.html', context)
 
 @login_required
 def start_crawl(request):
@@ -68,13 +80,7 @@ def get_task_status(request):
 @login_required
 def post_data(request):
     if request.method == "POST":
-        sales_data = Jdnew.objects().all()[:]
-        result = []
-        for data in sales_data:
-            d = data.__dict__()
-            d["crawl_time"] = str(d["crawl_time"])
-            result.append(d)
-        # print(result)
-        result = json.dumps(result)
+        sales_data = Jdnew.objects().filter(Q(keywords__contains="打印"))
+        result = sales_data.to_json()
         print(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')

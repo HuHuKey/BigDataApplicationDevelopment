@@ -34,3 +34,14 @@ class Jdnew(mongoengine.Document):
             "supplier": self.supplier,
             "keywords": self.keywords
         }
+
+
+class Jd(mongoengine.Document):
+    crawl_time = mongoengine.DateTimeField(db_field="crawlTime")
+    name = mongoengine.StringField()
+    price = mongoengine.FloatField(db_field="price")
+    commentCnt = mongoengine.IntField(db_field="commentCount")
+    grossSales = mongoengine.IntField(db_field="gross sales")
+    href = mongoengine.StringField()
+    supplier = mongoengine.StringField()
+    keywords = mongoengine.StringField()

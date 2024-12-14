@@ -1,0 +1,29 @@
+{% extends 'allauth/layouts/manage.html' %}
+{% block head_title %}
+    任务统计
+{% endblock %}
+<body>
+{% block content %}
+    <div>目前任务总计: {{ all }}</div>
+    <div>目前任务完成数: {{ success }}</div>
+    <div>目前执行的任务数: {{ active }}</div>
+    <div>目前等待的任务数: {{ pending }}</div>
+    <div>目前失败的任务数: {{ failed }}</div>
+    <h1>任务详情</h1>
+    <div style="height: 512px;width: 1024px;overflow-y: scroll;">
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <a href="{% url 'task_detail' task.task_id %}">
+                    <div>任务ID: {{ task.task_id }}</div>
+                    <div>任务状态: {{ task.status }}</div>
+                    <div>任务间隔: {{ task.date_created }} - {{ task.date_done }}</div>
+                    <div>任务名称: {{ task.task_name }}</div>
+                    <div>执行结果: {{ task.result }}</div>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    </div>
+{% endblock %}
+</body>
