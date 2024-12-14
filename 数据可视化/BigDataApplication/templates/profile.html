@@ -8,12 +8,22 @@
     <p>查询界面，在下方搜索框内输入搜索物品，多个物品请用逗号分开</p>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <form id="myForm" style="display: flex;width: 100%;" method="post">
-        <label style="width: 70%">
+        <label style="width: 60%">
             {#            {% csrf_token %}#}
             <i class="fas fa-search"></i>
             <input type="text" name="keywords" value="" placeholder="请输入搜索的关键词"
+                   style="display:inline;height: 35px;width: 95%"/>
+        </label>
+        <label style="width: 20%">
+            {#            {% csrf_token %}#}
+            <input type="text" name="page" value="" placeholder="请输入搜索页数"
                    style="display:inline;height: 35px;width: 90%"/>
         </label>
+        <select id="platform">
+            <option value="JD">选择平台</option>
+            <option value="JD">京东</option>
+            <option value="TB">淘宝</option>
+        </select>
         <input type="submit" class="button" style="width: 60px; height: 25px;margin: auto;text-align: center"
                value="搜索"/>
     </form>
@@ -28,8 +38,10 @@
                 $.each(formData, function (index, element) {
                     data[element.name] = element.value;
                 });
+                data['type'] = $('#platform').val();
                 var formDataToSend = $.param(data);
                 $(".loading").show()
+                $(".results").hide()
                 $.ajax({
                     url: '',  // 这里替换为实际的请求URL地址
                     type: 'POST',
@@ -37,20 +49,28 @@
                     data: formDataToSend,
                     success: function (jsonData) {
                         console.log(jsonData);
-                        var data = jsonData.datalist;
-                        var html = "共爬取数据" + jsonData.count + "条<br>";
-                        html +=  "<ul>";
-                        for (var i = 0; i < data.name.length; i++) {
-                            let keys = Object.keys(data)
-                            html += "<li>"
-                            for (var j = 0; j < keys.length; j++) {
-                                html += keys[j] + ":" + data.keys[i] + "<br>";
+                        id = jsonData.id;
+                        status = jsonData.status
+                        message = jsonData.message
+                        if (status == "success") {
+                            html = $('#result').html()
+                            html += "<p>" + message + " 任务id :" + id + "创建状态" + status + "</p>";
+                            /*var data = jsonData.datalist;
+                            var html = "共爬取数据" + jsonData.count + "条<br>";
+                            html +=  "<ul>";
+                            for (var i = 0; i < data.name.length; i++) {
+                                let keys = Object.keys(data)
+                                html += "<li>"
+                                for (var j = 0; j < keys.length; j++) {
+                                    html += keys[j] + ":" + data[keys[j]][i] + "<br>";
+                                }
+                                html += "</li>"
                             }
-                            html += "</li>"
+                            html += "</ul>";*/
+                            console.log(html)
+                            $(".loading").hide()
+                            $('#result').html(html);
                         }
-                        html += "</ul>";
-                        $(".loading").hide()
-                        $('#result').html(html);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.error(textStatus + ": " + errorThrown);
@@ -103,7 +123,7 @@
         }
     </style>
     <div class="loading">
-            <span style="color:#457895;text-align: center;margin: 50px auto;display: block">正在爬取数据，请稍后...</span>
+        <span style="color:#457895;text-align: center;margin: 50px auto;display: block">正在布置任务，请稍后...</span>
         <div class="animbox">
             <div></div>
             <div></div>
