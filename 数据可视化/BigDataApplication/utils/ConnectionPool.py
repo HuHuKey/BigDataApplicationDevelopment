@@ -1,11 +1,11 @@
 from pymongo import MongoClient
 
-# # 远程连接
-# host = '25.tcp.cpolar.top'
-# port = 12682
+# 远程连接
+host = '25.tcp.cpolar.top'
+port = 10655
 # 本地连接
-host = 'localhost'
-port = 27017
+# host = 'localhost'
+# port = 27017
 min_pool_size = 2
 max_pool_size = 10
 str_ = f'mongodb://{host}:{port}/'

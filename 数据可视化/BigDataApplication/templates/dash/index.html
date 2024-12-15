@@ -189,130 +189,156 @@
             </div>
         </div>
         <div class="leftMain_middle">
+
+            <!--            平均销售额 开始-->
             <div class="leftMain_middle_left">
                 <div class="leftMain_middle_leftIn">
-                    <h3>这里是标题</h3>
+                    <h3>各店铺平均销售额</h3>
                     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
                     <div class="biaoge" style="width:100%; height:25vh" id="chartmain"></div>
                     <script type="text/javascript">
-                        //window.onload = function () {
-                        //指定图表的配置项和数据
-                        var dataAxis = ['1日', '2日', '3日', '4日', '5日', '6日', '7日', '8日', '9日', '10日', '11日', '12日', '13日', '14日', '15日'];
-                        var data = [220, 182, 191, 234, 290, 330, 310, 123, 442, 321, 90, 149, 210, 122, 200];
-                        var yMax = 500;
-                        var dataShadow = [];
+                        function chartSaleAvg(dataAxis, data) {
+                            // var dataAxis = ['1日', '2日', '3日', '4日', '5日', '6日', '7日', '8日', '9日', '10日', '11日', '12日', '13日', '14日', '15日'];
+                            // var data = [220, 182, 191, 234, 290, 330, 310, 123, 442, 321, 90, 149, 210, 122, 200];
+                            var yMax = 500;
+                            var dataShadow = [];
 
-                        for (var i = 0; i < data.length; i++) {
-                            dataShadow.push(yMax);
-                        }
+                            for (var i = 0; i < data.length; i++) {
+                                dataShadow.push(yMax);
+                            }
 
-                        option = {
-                            title: {
-                                text: '',
-                                subtext: ''
-                            },
-                            grid: {
-                                x: 40,
-                                y: 40,
-                                x2: 20,
-                                y2: 20,
+                            option = {
+                                title: {
+                                    text: '',
+                                    subtext: ''
+                                },
+                                grid: {
+                                    x: 40,
+                                    y: 40,
+                                    x2: 20,
+                                    y2: 20,
 
-                            },
-                            xAxis: {
-                                data: dataAxis,
-                                axisLabel: {
-                                    /*inside: true,*/
-                                    interval: 0,
-                                    textStyle: {
-                                        color: '#fff',
-                                        fontSize: 12
+                                },
+                                xAxis: {
+                                    data: dataAxis,
+                                    axisLabel: {
+                                        /*inside: true,*/
+                                        interval: 0,
+                                        textStyle: {
+                                            color: '#fff',
+                                            fontSize: 12
 
-                                    }
-                                },
-                                axisTick: {
-                                    show: false,
-                                },
-                                axisLine: {
-                                    show: true,
-                                    symbol: ['none', 'arrow'],
-                                    symbolOffset: 12,
-                                    lineStyle: {
-                                        color: '#fff',
-                                    }
-                                },
-                                z: 10
-                            },
-                            yAxis: {
-                                type: 'value',
-                                name: '单位：元',
-                                axisLine: {
-                                    show: true,
-                                    symbol: ['none', 'arrow'],
-                                    symbolOffset: 12,
-                                    lineStyle: {
-                                        color: '#fff',
-                                    }
-                                },
-                                axisTick: {
-                                    show: false
-                                },
-                                axisLabel: {
-                                    textStyle: {
-                                        color: '#fff',
-                                        fontSize: 12
-                                    }
-                                }
-                            },
-
-                            dataZoom: [
-                                {
-                                    type: 'inside'
-                                }
-                            ],
-                            series: [
-                                { // For shadow
-                                    type: 'bar',
-                                    itemStyle: {
-                                        color: 'rgba(0,0,0,0.05)'
+                                        }
                                     },
-                                    barGap: '-100%',
-                                    barCategoryGap: '40%',
-                                    data: dataShadow,
-                                    animation: false
-                                },
-                                {
-                                    type: 'bar',
-                                    itemStyle: {
-                                        color: new echarts.graphic.LinearGradient(
-                                            0, 0, 0, 1,
-                                            [
-                                                {offset: 0, color: '#0efdff'},
-                                                {offset: 0.5, color: '#188df0'},
-                                                {offset: 1, color: '#188df0'}
-                                            ]
-                                        )
+                                    axisTick: {
+                                        show: false,
                                     },
-                                    emphasis: {
+                                    axisLine: {
+                                        show: true,
+                                        symbol: ['none', 'arrow'],
+                                        symbolOffset: 12,
+                                        lineStyle: {
+                                            color: '#fff',
+                                        }
+                                    },
+                                    z: 10
+                                },
+                                yAxis: {
+                                    type: 'value',
+                                    name: '单位：元',
+                                    axisLine: {
+                                        show: true,
+                                        symbol: ['none', 'arrow'],
+                                        symbolOffset: 12,
+                                        lineStyle: {
+                                            color: '#fff',
+                                        }
+                                    },
+                                    axisTick: {
+                                        show: false
+                                    },
+                                    axisLabel: {
+                                        textStyle: {
+                                            color: '#fff',
+                                            fontSize: 12
+                                        }
+                                    }
+                                },
+
+                                dataZoom: [
+                                    {
+                                        type: 'inside'
+                                    }
+                                ],
+                                series: [
+                                    { // For shadow
+                                        type: 'bar',
+                                        itemStyle: {
+                                            color: 'rgba(0,0,0,0.05)'
+                                        },
+                                        barGap: '-100%',
+                                        barCategoryGap: '40%',
+                                        data: dataShadow,
+                                        animation: false
+                                    },
+                                    {
+                                        type: 'bar',
                                         itemStyle: {
                                             color: new echarts.graphic.LinearGradient(
                                                 0, 0, 0, 1,
                                                 [
-                                                    {offset: 0, color: '#2378f7'},
-                                                    {offset: 0.7, color: '#2378f7'},
-                                                    {offset: 1, color: '#0efdff'}
+                                                    {offset: 0, color: '#0efdff'},
+                                                    {offset: 0.5, color: '#188df0'},
+                                                    {offset: 1, color: '#188df0'}
                                                 ]
                                             )
+                                        },
+                                        emphasis: {
+                                            itemStyle: {
+                                                color: new echarts.graphic.LinearGradient(
+                                                    0, 0, 0, 1,
+                                                    [
+                                                        {offset: 0, color: '#2378f7'},
+                                                        {offset: 0.7, color: '#2378f7'},
+                                                        {offset: 1, color: '#0efdff'}
+                                                    ]
+                                                )
+                                            }
+                                        },
+                                        data: data
+                                    }
+                                ]
+                            };
+                            //获取dom容器
+                            var myChart = echarts.init(document.getElementById('chartmain'));
+                            // 使用刚指定的配置项和数据显示图表。
+                            myChart.setOption(option);
+                        }
+
+                        function doAvgSaleAjax() {
+                            $.ajax(
+                                {
+                                    url: 'api/avgSale4pie',
+                                    type: 'POST',
+                                    success: function (data) {
+                                        let time = []
+                                        let sale_avg = []
+                                        for (let d of data) {
+                                            console.log(d)
+                                            sale_avg.push(d.average_total_sales)
+                                            time.push(d._id)
                                         }
-                                    },
-                                    data: data
+                                        chartSaleAvg(time, sale_avg)
+                                    }
                                 }
-                            ]
-                        };
-                        //获取dom容器
-                        var myChart = echarts.init(document.getElementById('chartmain'));
-                        // 使用刚指定的配置项和数据显示图表。
-                        myChart.setOption(option);
-                        //};
+                            )
+                        }
+
+                        $(document).ready(function () {
+                            doAvgSaleAjax()
+                            setInterval(doAvgSaleAjax, 60000)
+                        })
+
                     </script>
                     <span class="border_bg_leftTop"></span>
                     <span class="border_bg_rightTop"></span>
@@ -320,6 +346,8 @@
                     <span class="border_bg_rightBottom"></span>
                 </div>
             </div>
+            <!--            平均销售额 结束-->
+
             <div class="leftMain_middle_right">
                 <div class="leftMain_middle_rightIn">
                     <h3>这里是标题</h3>
@@ -696,10 +724,12 @@
                             url: "api/data4pie",
                             type: 'POST',
                             success: function (data) {
+                                // console.log(data)
                                 //console.log(data)
                                 let regions = []
                                 let pie = []
                                 for (let d of data) {
+                                    // console.log(d)
                                     //console.log(d)
                                     regions.push(d._id)
                                     let item = {
@@ -748,14 +778,14 @@
 
                                 </script>
                                 {% for data in origin_jd %}
-                                    <ul class="ul_con">
-                                        <li>{{ data.name|slice:3 }}...</li>
-                                        <li>{{ data.price }}</li>
-                                        <li>{{ data.commentCnt }}</li>
-                                        <li>{{ data.crawl_time|slice:"-5:" }}</li>
-                                        <li>{{ data.supplier|slice:3 }}...</li>
-                                        <li>...{{ data.href|slice:"-10:-5" }}...</li>
-                                    </ul>
+                                <ul class="ul_con">
+                                    <li>{{ data.name|slice:3 }}...</li>
+                                    <li>{{ data.price }}</li>
+                                    <li>{{ data.commentCnt }}</li>
+                                    <li>{{ data.crawl_time|slice:"-5:" }}</li>
+                                    <li>{{ data.supplier|slice:3 }}...</li>
+                                    <li>...{{ data.href|slice:"-10:-5" }}...</li>
+                                </ul>
                                 {% endfor %}
 
                             </div>

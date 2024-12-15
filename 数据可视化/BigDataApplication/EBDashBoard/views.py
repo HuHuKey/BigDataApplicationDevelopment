@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http.response import HttpResponse
 from mongoengine import Q
-
+from django.db.models import Avg
+from pymongo import MongoClient
 from EBAsite.task import crawl, add
 from django_celery_results.models import TaskResult
 
@@ -34,7 +35,6 @@ def dashboard_view(request):
         # sales_data爬取的数据条数
         length = Jdnew.objects().count() + Tbnew.objects().count()
         context['length'] = length
-        # 统计每个省份出现的次数
 
         # print(sales_data.to_json())
         # all_sales_data = SalesData.objects()
@@ -42,6 +42,27 @@ def dashboard_view(request):
     except Exception as e:
         context = {'error_message': f'数据库查询出现问题，请稍后再试{e}'}
     return render(request, 'dash/index.html', context)
+
+
+@login_required()
+def avgSale4pie(req):
+    if req.method == 'POST':
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$crawlTime",
+                    "average_total_sales": {"$avg": "$gross sales"}
+                }
+            },
+            {
+                '$sort': {
+                    'average_total_sales': 1
+                }
+            }
+        ]
+        average_daily_sales_result = Jdnew.objects().aggregate(pipeline)
+        res = json.dumps(list(average_daily_sales_result))
+        return HttpResponse(res, content_type='application/json;charset=utf8')
 
 
 def keywords_view(request, keyword):
