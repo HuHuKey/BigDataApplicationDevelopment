@@ -532,12 +532,14 @@
                                 // orient: 'vertical',
                                 // top: 'middle',
                                 type: 'scroll',
-                                orient: 'vertical',
-                                right: 10,
-                                top: 40,
-                                bottom: 20,
-                                left: 'right',
+                                orient: 'horizontal',
+                                right: 80,
+                                top: 0,
+                                bottom: 100,
+                                left: 80,
                                 data: regions,
+                                itemWidth: 15,
+                                itemHeight: 8,
                                 textStyle: {
                                     color: '#fff',
                                     fontSize: 12
@@ -553,6 +555,7 @@
                             color: ['#09d0fb', '#f88cfb', '#95f8fe', '#f9f390', '#ecfeb7'],
                             series: [
                                 {
+                                    name: "省份",
                                     type: 'pie',
                                     radius: '65%',
                                     center: ['50%', '50%'],

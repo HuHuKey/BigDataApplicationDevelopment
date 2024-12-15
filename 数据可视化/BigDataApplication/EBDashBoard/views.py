@@ -16,14 +16,14 @@ from .models import Jdnew, Tbnew, Jd
 def dashboard_view(request):
     try:
         sales_data = Jdnew.objects().order_by('-crawlTime').limit(30)
-        sales_data_tb = Tbnew.objects().all()[:]
+        sales_data_tb = Tbnew.objects().order_by('-crawlTime').limit(30)
         origin_jd = Jd.objects().order_by("-CrawlTime").limit(30)
         context = {
             'sales_data': sales_data,
             'sales_data_tb': sales_data_tb,
             'origin_jd': origin_jd
         }
-        print(origin_jd.to_json())
+        # print(origin_jd.to_json())
         # 找到grossSales最大，price最低，commentCnt最多的对应的数据
         gross_sale_max = max(sales_data, key=lambda x: x.grossSales)
         price_min = min(sales_data, key=lambda x: x.price)
@@ -32,8 +32,8 @@ def dashboard_view(request):
         context['price_min'] = price_min
         context['comment_cnt_max'] = comment_cnt_max
         # sales_data爬取的数据条数
-        length_jd = len(sales_data)
-        context['length'] = length_jd
+        length = Jdnew.objects().count() + Tbnew.objects().count()
+        context['length'] = length
         # 统计每个省份出现的次数
 
         # print(sales_data.to_json())
@@ -102,7 +102,7 @@ def post_data(request):
     if request.method == "POST":
         sales_data = Jdnew.objects().filter(Q(keywords__contains="打印"))
         result = sales_data.to_json()
-        print(result)
+        # print(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
 
 def post_data_tb(req):
