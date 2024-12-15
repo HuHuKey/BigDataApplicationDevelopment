@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from utils.crawler.cookies.CookieSaver import CookieSaver
 from selenium.webdriver.edge.options import Options
-from utils.crawler.CrawlerData import CrawlerData
+from utils.crawler.CrawlerData import CrawlerData, JDCrawlerData
 from pyquery import PyQuery as pq
 
 
@@ -80,7 +80,6 @@ class BaseCrawler(Crawler):
                 'supplier': 'div.p-shop > span > a'
             }
         self.col2css = col2css
-        self.data = CrawlerData(col2css)
         self.options = options
         self.goods_css = goods_css
         self.search_bar = search_bar
@@ -116,7 +115,7 @@ class BaseCrawler(Crawler):
         for good in goods:
             g = pq(good)
             self.appendGoodsList(g)
-            self.data.nextTuple('jd')
+            self.data.nextTuple('jdnew')
 
     def appendGoodsList(self, g):
         for (k, v) in self.col2css.items():
@@ -252,6 +251,8 @@ def getTodayDate():
 
 
 class JDCrawler(CookieCrawler):
+    data: JDCrawlerData
+
     def __init__(self, name: str):
         args = (name, 'http://www.jd.com')
         kwargs = {
@@ -269,6 +270,7 @@ class JDCrawler(CookieCrawler):
             'next_page_css': 'KEY.RIGHT',
         }
         super().__init__(*args, **kwargs)
+        self.data = JDCrawlerData(self.col2css)
 
     def turnToNextPage(self):
         """
@@ -296,11 +298,21 @@ class JDCrawler(CookieCrawler):
     def appendGoodsList(self, g):
         super().appendGoodsList(g)
         k = 'href'
-        v = ("https:" + g('div.p-name.p-name-type-2 > a').attr['href'])
+        try:
+            v = ("https:" + g('div.p-name > a').attr['href'])
+        except Exception as e:
+            print(g)
+            raise e
         self.data.write(k, v)
         k = 'keywords'
         v = self.keywords
         self.data.write(k, v)
+
+    def collectGoodsData(self, goods: str) -> None:
+        for good in goods:
+            g = pq(good)
+            self.appendGoodsList(g)
+            self.data.nextTuple('jdnew')
 
 
 class TBCrawler(CookieCrawler):
@@ -374,5 +386,5 @@ def makeCrawl(keywords: list[str], page=30, type="JD") -> (dict, int):
 
 
 if __name__ == '__main__':
-    r = makeCrawl(['手机'], 1)
+    r = makeCrawl(['信用卡'], 1)
     print(r)

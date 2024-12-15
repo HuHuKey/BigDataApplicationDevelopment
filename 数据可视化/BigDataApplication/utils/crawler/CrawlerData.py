@@ -1,6 +1,7 @@
 from utils.datasaver.MongoSaver import upsertTuple
 from utils.ConnectionPool import Client_Pool
 from EBAsite.settings import DATABASES
+from utils.datasaver.clear import jd_tuple_clear
 
 
 class CrawlerData:
@@ -32,3 +33,17 @@ class CrawlerData:
 
     def getColName(self):
         return tuple(self.cssDict.keys())
+
+
+class JDCrawlerData(CrawlerData):
+    def nextTuple(self, collection: str):
+        for col_name in self.cssDict.keys():
+            self.dataDict[col_name] = self.dataDict.get(col_name, None)
+        keys = ['name', 'crawlTime']
+        success = jd_tuple_clear(self.dataDict)
+        if not success:
+            self.dataDict.clear()
+            return
+        upsertTuple(Client_Pool, DATABASES['mongodb']['NAME'], collection, keys, self.dataDict)
+        self.dataList.append(self.dataDict)
+        self.dataDict.clear()

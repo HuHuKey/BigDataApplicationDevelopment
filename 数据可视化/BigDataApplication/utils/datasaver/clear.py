@@ -76,7 +76,7 @@ def clear_jd():
             skipped_count += 1
             continue
 
-        crawl_time = document.get("crawlTime",datetime.datetime.now())
+        crawl_time = document.get("crawlTime", datetime.datetime.now())
         if isinstance(crawl_time, datetime.datetime):
             crawl_time = crawl_time.strftime("%Y-%m-%d")
         document["crawlTime"] = crawl_time
@@ -193,6 +193,53 @@ def clear_tb():
     # 输出读取的文档总数
     print(f"总共读取了 {document_count} 个文档。")
     print("所有修改后的文档已保存到 tbnew 集合中。")
+
+
+def jd_tuple_clear(document: dict):
+    name_value = document.get("name")
+    if name_value and isinstance(name_value, str):
+        document["name"] = name_value.replace("\n", "")
+
+    # 处理price字段
+    price_value = document.get("price")
+    if price_value:
+        # 新增：检查price_value类型是否符合预期，如果不符合直接记录错误并跳过该文档
+        if not isinstance(price_value, (str, float, int)):
+            print(f"跳过文档: {document.get('name')} - price字段类型不符合预期")
+        try:
+            # 先尝试将price_value转换为字符串（如果本身不是字符串的话），再构造Decimal对象
+            decimal_price = Decimal(str(price_value))
+            document["price"] = round(float(decimal_price), 2)
+        except decimal.InvalidOperation as e:
+            print(f"跳过文档: {document.get('name')} - price字段转换失败，原因: {e}")
+            return False
+    # 处理commentCount字段
+    comment_count_value = document.get("commentCount")
+    if comment_count_value and isinstance(comment_count_value, str):
+        comment_count_value = comment_count_value.replace("+", "")
+        comment_count_value = comment_count_value.replace("万", "0000")
+        try:
+            document["commentCount"] = int(comment_count_value)
+        except ValueError:
+            print(f"跳过文档: {document.get('name')} - commentCount字段转换失败")
+            return False
+
+    # 计算gross sales字段
+    price = document.get("price", 0)
+    comment_count = document.get("commentCount", 0)
+    try:
+        decimal_price = Decimal(str(price))
+        decimal_comment_count = Decimal(str(comment_count))
+        document["gross sales"] = round(float(decimal_price * decimal_comment_count), 2)
+    except decimal.InvalidOperation as e:
+        print(f"跳过文档: {document.get('price')} - gross sales字段计算失败，原因: {e}")
+        return False
+
+    crawl_time = document.get("crawlTime", datetime.datetime.now())
+    if isinstance(crawl_time, datetime.datetime):
+        crawl_time = crawl_time.strftime("%Y-%m-%d")
+    document["crawlTime"] = crawl_time
+    return True
 
 
 if __name__ == '__main__':

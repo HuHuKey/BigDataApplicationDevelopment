@@ -55,8 +55,8 @@ def avgSale4pie(req):
                 }
             },
             {
-                '$sort': {
-                    'average_total_sales': 1
+                "$sort": {
+                    "_id": 1  # 按照_id（也就是crawlTime）进行降序排序，使得时间从近到远
                 }
             }
         ]
@@ -173,3 +173,9 @@ def data4line(req):
         res = Jdnew.objects().aggregate(pipeline)
         res = json.dumps(list(res))
         return HttpResponse(res, content_type='application/json;charset=utf8')
+
+
+@login_required
+def data4desc(req):
+    if req.method == 'POST':
+        total = Jdnew.objects().count() + Tbnew.objects().count()
