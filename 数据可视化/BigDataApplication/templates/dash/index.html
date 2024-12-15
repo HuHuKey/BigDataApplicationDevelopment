@@ -25,13 +25,24 @@
     <script src="{% static 'js/echarts.min.js' %}"></script>
     <!--    <script src="js/echarts.min.js"></script>-->
     <style>
-        a div.button {
+        .top-head {
             position: absolute;
+            top: 3%;
+            left: 3%;
+            display: flex;
+            width: 35%;
+            height: 5%;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        a div.button {
+            position: relative;
             padding: 10px;
-            margin: 35px 50px;
             border: 10px whitesmoke;
-            box-shadow: 1px 1px 10px black;
-            border-radius: 10px;
+            /*box-shadow: 1px 1px 10px black;
+            border-radius: 10px;*/
+            border: 0.008rem solid rgba(14, 253, 255, 0.5);
             font-weight: bold;
             background: transparent;
             color: floralwhite;
@@ -47,20 +58,68 @@
             opacity: 1;
             scale: 1.05;
         }
+
+        .top-right {
+            position: relative;
+            color: white;
+            width: 50%;
+        }
+
+        .top-right span {
+            padding: 3px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 15px;
+        }
     </style>
 </head>
 
 <body>
-
-<a href="start/">
-    <div class="button" style="">
-        <p>返回用户管理界面</p>
-        <span class="border_bg_leftTop"></span>
-        <span class="border_bg_rightTop"></span>
-        <span class="border_bg_leftBottom"></span>
-        <span class="border_bg_rightBottom"></span>
+<div class="top-head">
+    <a href="start/">
+        <div class="button" style="">
+            <p>返回用户管理界面</p>
+            <span class="border_bg_leftTop"></span>
+            <span class="border_bg_rightTop"></span>
+            <span class="border_bg_leftBottom"></span>
+            <span class="border_bg_rightBottom"></span>
+        </div>
+    </a>
+    <div class="top-right">
+        <span>当前时间:</span><span id="current-date"></span><span id="current-time"></span>
     </div>
-</a>
+</div>
+
+<script type="text/javascript">
+    function updateTime() {
+        const currentTime = new Date();
+        const hours = currentTime.getHours().toString().padStart(2, '0');
+        const minutes = currentTime.getMinutes().toString().padStart(2, '0');
+        const seconds = currentTime.getSeconds().toString().padStart(2, '0');
+        const timeString = `${hours}:${minutes}:${seconds}`;
+        document.getElementById('current-time').innerHTML = timeString;
+    }
+
+    // 每隔1000毫秒（即1秒）调用一次updateTime函数来更新时间
+    setInterval(updateTime, 1000);
+    // 首次调用updateTime函数，立即显示初始时间
+    updateTime();
+
+    function updateDate() {
+        // 获取并格式化日期部分
+        const current = new Date();
+        const year = current.getFullYear();
+        const month = (current.getMonth() + 1).toString().padStart(2, '0');  // 月份从0开始，所以要加1
+        const day = current.getDate().toString().padStart(2, '0');
+        const dateString = `${year}年${month}月${day}日`;
+        document.getElementById('current-date').innerHTML = dateString;
+    }
+    $(document).ready(function () {
+        updateDate();
+    })
+</script>
+
+
 <div class="bg">
     <div class="title">智能大屏数据中心</div>
     <div class="leftMain">
@@ -70,12 +129,12 @@
                     <li>
                         <div class="liIn">
                             <h3>销量最多</h3>
-                            <p class="shu"><span class="shu1">{{gross_sale_max.grossSales}}</span><i>元</i></p>
-                            <div class="zi"><span class="span1">单价：{{gross_sale_max.price}}</span><i>元</i><br>
-                                <span>评论数：{{gross_sale_max.commentCnt}}</span><i>条</i><br>
-                                <span>标题：{{gross_sale_max.name}}</span><br>
-                                <span>商品链接：<a href="{{gross_sale_max.href}}"
-                                                  target="_blank">{{gross_sale_max.href}}</a></span>
+                            <p class="shu"><span class="shu1">{{ gross_sale_max.grossSales }}</span><i>元</i></p>
+                            <div class="zi"><span class="span1">单价：{{ gross_sale_max.price }}</span><i>元</i><br>
+                                <span>评论数：{{ gross_sale_max.commentCnt }}</span><i>条</i><br>
+                                <span>标题：{{ gross_sale_max.name }}</span><br>
+                                <span>商品链接：<a href="{{ gross_sale_max.href }}"
+                                                  target="_blank">{{ gross_sale_max.href }}</a></span>
                             </div>
                             <span class="border_bg_leftTop"></span>
                             <span class="border_bg_rightTop"></span>
@@ -86,12 +145,12 @@
                     <li>
                         <div class="liIn">
                             <h3>单价最低</h3>
-                            <p class="shu"><span class="shu2">{{price_min.price}}</span><i>元</i></p>
-                            <div class="zi"><span class="span1">销售额：{{price_min.grossSales}}</span><i>元</i><br>
-                                <span>评论数：{{price_min.commentCnt}}</span><i>条</i><br>
-                                <span>标题：{{price_min.name}}</span><br>
-                                <span>商品链接：<a href="{{price_min.href}}"
-                                                  target="_blank">{{price_min.href}}</a></span>
+                            <p class="shu"><span class="shu2">{{ price_min.price }}</span><i>元</i></p>
+                            <div class="zi"><span class="span1">销售额：{{ price_min.grossSales }}</span><i>元</i><br>
+                                <span>评论数：{{ price_min.commentCnt }}</span><i>条</i><br>
+                                <span>标题：{{ price_min.name }}</span><br>
+                                <span>商品链接：<a href="{{ price_min.href }}"
+                                                  target="_blank">{{ price_min.href }}</a></span>
                             </div>
                             <span class="border_bg_leftTop"></span>
                             <span class="border_bg_rightTop"></span>
@@ -102,11 +161,12 @@
                     <li>
                         <div class="liIn">
                             <h3>评价最多</h3>
-                            <p class="shu"><span class="shu3">{{comment_cnt_max.commentCnt}}</span><i>条</i></p>
-                            <div class="zi"><span class="span1">单价：{{comment_cnt_max.price}}</span><i>元</i><br>
-                                <span>销售额：{{comment_cnt_max.grossSales}}</span><i>元</i><br>
-                                <span>标题：{{comment_cnt_max.name}}</span><br>
-                                <span>商品链接：<a href="{{comment_cnt_max.href}}" target="_blank">{{comment_cnt_max.href}}</a></span>
+                            <p class="shu"><span class="shu3">{{ comment_cnt_max.commentCnt }}</span><i>条</i></p>
+                            <div class="zi"><span class="span1">单价：{{ comment_cnt_max.price }}</span><i>元</i><br>
+                                <span>销售额：{{ comment_cnt_max.grossSales }}</span><i>元</i><br>
+                                <span>标题：{{ comment_cnt_max.name }}</span><br>
+                                <span>商品链接：<a href="{{ comment_cnt_max.href }}"
+                                                  target="_blank">{{ comment_cnt_max.href }}</a></span>
                             </div>
                             <span class="border_bg_leftTop"></span>
                             <span class="border_bg_rightTop"></span>
@@ -117,7 +177,7 @@
                     <li>
                         <div class="liIn">
                             <h3>共计爬取数据</h3>
-                            <p class="shu"><span class="shu4">{{length}}</span><i>条</i></p>
+                            <p class="shu"><span class="shu4">{{ length }}</span><i>条</i></p>
                             <div class="zi"><span class="span1">幻梦数据团为您倾力打造</span></div>
                             <span class="border_bg_leftTop"></span>
                             <span class="border_bg_rightTop"></span>
@@ -339,112 +399,164 @@
         <div class="leftMain_middle">
             <div class="leftMain_middle_left">
                 <div class="leftMain_middle_leftIn">
-                    <h3>这里是标题</h3>
+                    <h3>评论数与价格趋势图</h3>
                     <div class="biaoge" style="width:100%; height:25vh" id="chartmain_zhe"></div>
                     <script type="text/javascript">
                         //window.onload = function (){
                         //指定图表的配置项和数据
-
-                        option = {
-                            title: {
-                                text: ''
-                            },
-                            tooltip: {
-                                trigger: 'axis'
-                            },
-                            legend: {
-                                textStyle: {
-                                    color: '#fff',
-                                    fontSize: 12,
+                        function lineChart(time, avgComment, avgPrice,) {
+                            option = {
+                                title: {
+                                    text: ''
                                 },
-                                right: '10%',
-                                data: ['折线一', '折线二']
-                            },
-                            grid: {
-                                x: 40,
-                                y: 40,
-                                x2: 20,
-                                y2: 20,
-                            },
-                            toolbox: {
-                                feature: {
-                                    //saveAsImage: {}
-                                }
-                            },
-                            xAxis: {
-                                type: 'category',
-                                boundaryGap: false,
-                                axisLabel: {
-                                    /*inside: true,*/
-                                    interval: 0,
+                                tooltip: {
+                                    trigger: 'axis'
+                                },
+                                legend: {
                                     textStyle: {
                                         color: '#fff',
-                                        fontSize: 12
+                                        fontSize: 12,
+                                    },
+                                    right: '10%',
+                                    data: ['价格', '评论数']
+                                },
+                                grid: {
+                                    x: 50,
+                                    y: 40,
+                                    x2: 50,
+                                    y2: 20,
+                                },
+                                toolbox: {
+                                    feature: {
+                                        //saveAsImage: {}
+                                    }
+                                },
+                                xAxis: {
+                                    type: 'category',
+                                    boundaryGap: false,
+                                    axisLabel: {
+                                        /*inside: true,*/
+                                        interval: 0,
+                                        textStyle: {
+                                            color: '#fff',
+                                            fontSize: 12
 
+                                        }
+                                    },
+                                    axisTick: {
+                                        show: false,
+                                    },
+                                    axisLine: {
+                                        show: true,
+                                        symbol: ['none', 'arrow'],
+                                        symbolOffset: 12,
+                                        lineStyle: {
+                                            color: '#fff',
+                                        }
+                                    },
+                                    data: time,//['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00']
+                                },
+                                yAxis: [{
+                                    type: 'value',
+                                    position: 'left',
+                                    axisLine: {
+                                        show: true,
+                                        symbol: ['none', 'arrow'],
+                                        symbolOffset: 12,
+                                        lineStyle: {
+                                            color: '#fff',
+                                        }
+                                    },
+                                    axisTick: {
+                                        show: false
+                                    },
+                                    axisLabel: {
+                                        textStyle: {
+                                            color: '#fff',
+                                            fontSize: 12
+                                        }
                                     }
-                                },
-                                axisTick: {
-                                    show: false,
-                                },
-                                axisLine: {
-                                    show: true,
-                                    symbol: ['none', 'arrow'],
-                                    symbolOffset: 12,
-                                    lineStyle: {
-                                        color: '#fff',
+                                }, {
+                                    type: 'value',
+                                    position: 'right',
+                                    axisLine: {
+                                        show: true,
+                                        symbol: ['none', 'arrow'],
+                                        symbolOffset: 12,
+                                        lineStyle: {
+                                            color: '#fff',
+                                        }
+                                    },
+                                    axisTick: {
+                                        show: false
+                                    },
+                                    axisLabel: {
+                                        textStyle: {
+                                            color: '#fff',
+                                            fontSize: 12
+                                        }
                                     }
-                                },
-                                data: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00']
-                            },
-                            yAxis: {
-                                type: 'value',
+                                }],
+                                series: [
+                                    {
+                                        name: '价格',
+                                        type: 'line',
+                                        stack: '平均数',
+                                        data: avgPrice,//[280, 102, 191, 134, 390, 230, 210],
+                                        yAxisIndex: 0,
+                                        itemStyle: {
+                                            normal: {
+                                                color: "#0efdff",//折线点的颜色
+                                                lineStyle: {
+                                                    color: "#0efdff",//折线的颜色
+                                                    width: 2,
+                                                }
+                                            },
+                                        }
+                                    },
+                                    {
+                                        name: '评论数',
+                                        type: 'line',
+                                        stack: '平均数',
+                                        data: avgComment,//[100, 132, 131, 234, 290, 330, 110]
+                                        yAxisIndex: 1,
+                                    },
+                                ]
+                            };
+                            //获取dom容器
+                            var myChart = echarts.init(document.getElementById('chartmain_zhe'));
+                            // 使用刚指定的配置项和数据显示图表。
+                            myChart.setOption(option);
+                        }
 
-                                axisLine: {
-                                    show: true,
-                                    symbol: ['none', 'arrow'],
-                                    symbolOffset: 12,
-                                    lineStyle: {
-                                        color: '#fff',
+                        function doLineChartAjax() {
+                            $.ajax({
+                                url: "api/data4line",
+                                type: 'POST',
+                                success: function (data) {
+                                    //console.log(data)
+                                    let ctime = []
+                                    let avgComment = []
+                                    let avgPrice = []
+                                    for (let d of data) {
+                                        //console.log(d)
+                                        ctime.push(d._id)
+                                        avgComment.push(d.averageCommentCount)
+                                        avgPrice.push(d.averagePrice)
                                     }
-                                },
-                                axisTick: {
-                                    show: false
-                                },
-                                axisLabel: {
-                                    textStyle: {
-                                        color: '#fff',
-                                        fontSize: 12
-                                    }
+                                    lineChart(ctime, avgComment, avgPrice)
                                 }
-                            },
-                            series: [
-                                {
-                                    name: '折线一',
-                                    type: 'line',
-                                    stack: '总量',
-                                    data: [280, 102, 191, 134, 390, 230, 210],
-                                    itemStyle: {
-                                        normal: {
-                                            color: "#0efdff",//折线点的颜色
-                                            lineStyle: {
-                                                color: "#0efdff",//折线的颜色
-                                                width: 2,
-                                            }
-                                        },
-                                    }
-                                },
-                                {
-                                    name: '折线二',
-                                    type: 'line',
-                                    stack: '总量',
-                                    data: [100, 132, 131, 234, 290, 330, 110]
-                                },
-                            ]
-                        };
-                        //获取dom容器
-                        var myChart = echarts.init(document.getElementById('chartmain_zhe'));
-                        // 使用刚指定的配置项和数据显示图表。
-                        myChart.setOption(option);
+                            })
+                        }
+
+                        $().ready(
+                            function () {
+                                doLineChartAjax()
+                                setInterval(doLineChartAjax, 30000)
+                            }
+                        )
+
+
                         //};
                     </script>
                     <span class="border_bg_leftTop"></span>
@@ -571,8 +683,8 @@
                                 }
                             ]
                         };
-                        console.log(regions)
-                        console.log(data)
+                        //console.log(regions)
+                        //console.log(data)
                         //获取dom容器
                         var myChart = echarts.init(document.getElementById('chartmain_bing'));
                         // 使用刚指定的配置项和数据显示图表。
@@ -584,11 +696,11 @@
                             url: "api/data4pie",
                             type: 'POST',
                             success: function (data) {
-                                console.log(data)
+                                //console.log(data)
                                 let regions = []
                                 let pie = []
                                 for (let d of data) {
-                                    console.log(d)
+                                    //console.log(d)
                                     regions.push(d._id)
                                     let item = {
                                         'name': d._id,

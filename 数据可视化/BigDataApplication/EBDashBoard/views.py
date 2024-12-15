@@ -105,6 +105,7 @@ def post_data(request):
         # print(result)
         return HttpResponse(result, content_type='application/json;charset=utf8')
 
+
 def post_data_tb(req):
     if req.method == 'POST':
         sales_data_tb = Tbnew.objects().all()[:]
@@ -128,4 +129,26 @@ def data4pie(req):
         ]
         province_cnt = Tbnew.objects().aggregate(pipeline)
         res = json.dumps(list(province_cnt))
+        return HttpResponse(res, content_type='application/json;charset=utf8')
+
+
+@login_required()
+def data4line(req):
+    if req.method == 'POST':
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$crawlTime",  # 按照crawlTime进行分组，将crawlTime的值作为分组的_id
+                    "averageCommentCount": {"$avg": "$commentCount"},  # 计算每组中commentCount的平均数
+                    "averagePrice": {"$avg": "$price"},  # 计算每组中commentCount的平均数
+                }
+            },
+            {
+                "$sort": {
+                    "_id": 1  # 按照_id（也就是crawlTime）进行降序排序，使得时间从近到远
+                }
+            }
+        ]
+        res = Jdnew.objects().aggregate(pipeline)
+        res = json.dumps(list(res))
         return HttpResponse(res, content_type='application/json;charset=utf8')
