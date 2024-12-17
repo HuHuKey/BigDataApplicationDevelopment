@@ -9,7 +9,7 @@
     <meta name="keywords" content="">
     <!--    <meta http-equiv="refresh" content="60;url='https://gitee.com/iGaoWei/big-data-view'">-->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>酷炫智能大屏数据中心</title>
+    <title>电商销售数据可视化平台</title>
     <!--大屏-->
     <!--    <link type="text/css" href="css/public.css" rel="stylesheet">-->
     <!--    <link type="text/css" href="css/icon.css" rel="stylesheet">-->
@@ -86,7 +86,7 @@
         </div>
     </a>
     <div class="top-right">
-        <span>当前时间:</span><span id="current-date"></span><span id="current-time"></span>
+        <span>北京时间:</span><span id="current-date"></span><span id="current-time"></span>
     </div>
 </div>
 
@@ -114,6 +114,7 @@
         const dateString = `${year}年${month}月${day}日`;
         document.getElementById('current-date').innerHTML = dateString;
     }
+
     $(document).ready(function () {
         updateDate();
     })
@@ -121,7 +122,7 @@
 
 
 <div class="bg">
-    <div class="title">智能大屏数据中心</div>
+    <div class="title">幻梦数据团--参上</div>
     <div class="leftMain">
         <div class="leftMain_top">
             <div class="leftMain_topIn">
@@ -213,7 +214,7 @@
                                     subtext: ''
                                 },
                                 grid: {
-                                    x: 40,
+                                    x: 80,
                                     y: 40,
                                     x2: 20,
                                     y2: 20,
@@ -350,70 +351,72 @@
 
             <div class="leftMain_middle_right">
                 <div class="leftMain_middle_rightIn">
-                    <h3>这里是标题</h3>
+                    <h3>幻梦数据团为您推荐</h3>
                     <div class="biaoge biaoge_pai" style="width:100%; height:25vh">
                         <div class="biaoge_paiIn">
-                            <ul>
+                            <ul id="recommendList">
+                                {% for item in top_six %}
                                 <li>
-                                    <div class="liIn">
-                                        <div class="liIn_left"><span class="bot"></span><span class="zi">第一名</span>
+                                    <div class="liIn liIn{{ forloop.counter }}">
+                                        <div class="liIn_left"><span class="bot"></span><span class="zi"><a
+                                                href="{{item.href}}"
+                                                target="_blank">{{ item.name|slice:5}}...</a></span>
                                         </div>
                                         <div class="liIn_line">
-                                            <div class="line_lineIn" style="width:98.5%;"></div>
+                                            <div class="line_lineIn" style="width:{{ item.score }}%;"></div>
                                         </div>
-                                        <p class="num">98.5%</p>
+                                        <p class="num">{{ item.score|floatformat:3 }}分</p>
                                     </div>
                                 </li>
-                                <li>
-                                    <div class="liIn liIn2">
-                                        <div class="liIn_left"><span class="bot"></span><span class="zi">第二名</span>
-                                        </div>
-                                        <div class="liIn_line">
-                                            <div class="line_lineIn" style="width:88.5%;"></div>
-                                        </div>
-                                        <p class="num">88.5%</p>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="liIn liIn3">
-                                        <div class="liIn_left"><span class="bot"></span><span class="zi">第三名</span>
-                                        </div>
-                                        <div class="liIn_line">
-                                            <div class="line_lineIn" style="width:68.5%;"></div>
-                                        </div>
-                                        <p class="num">68.5%</p>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="liIn liIn4">
-                                        <div class="liIn_left"><span class="bot"></span><span class="zi">第四名</span>
-                                        </div>
-                                        <div class="liIn_line">
-                                            <div class="line_lineIn" style="width:40.5%;"></div>
-                                        </div>
-                                        <p class="num">40.5%</p>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="liIn liIn5">
-                                        <div class="liIn_left"><span class="bot"></span><span class="zi">第五名</span>
-                                        </div>
-                                        <div class="liIn_line">
-                                            <div class="line_lineIn" style="width:22.5%;"></div>
-                                        </div>
-                                        <p class="num">22.5%</p>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="liIn liIn6">
-                                        <div class="liIn_left"><span class="bot"></span><span class="zi">第六名</span>
-                                        </div>
-                                        <div class="liIn_line">
-                                            <div class="line_lineIn" style="width:10.5%;"></div>
-                                        </div>
-                                        <p class="num">10.5%</p>
-                                    </div>
-                                </li>
+                                {% endfor %}
+                                <script>
+                                    function updateData() {
+                                        // 使用Ajax发起GET请求到获取数据的视图函数对应的URL（这里假设视图函数对应的URL是 /dashboard/，需根据实际情况调整）
+                                        fetch('/dashboard/')
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                const recommendList = document.getElementById('recommendList');
+                                                recommendList.innerHTML = '';  // 先清空原有列表内容
+                                                data.top_six.forEach((item, index) => {
+                                                    const li = document.createElement('li');
+                                                    const liIn = document.createElement('div');
+                                                    liIn.classList.add('liIn', `liIn${index + 1}`);
+                                                    const liInLeft = document.createElement('div');
+                                                    liInLeft.classList.add('liIn_left');
+                                                    const botSpan = document.createElement('span');
+                                                    botSpan.classList.add('bot');
+                                                    const ziSpan = document.createElement('span');
+                                                    ziSpan.textContent = item.name.slice(0, 5) + '...';
+                                                    const a = document.createElement('a');
+                                                    a.href = item.href;
+                                                    a.target = '_blank';
+                                                    a.textContent = ziSpan.textContent;
+                                                    liInLeft.appendChild(botSpan);
+                                                    liInLeft.appendChild(a);
+                                                    const liInLine = document.createElement('div');
+                                                    liInLine.classList.add('liIn_line');
+                                                    const lineLineIn = document.createElement('div');
+                                                    lineLineIn.style.width = item.score + '%';
+                                                    lineLineIn.classList.add('line_lineIn');
+                                                    liInLine.appendChild(lineLineIn);
+                                                    const num = document.createElement('p');
+                                                    num.classList.add('num');
+                                                    num.textContent = item.score.toFixed(3) + '分';
+                                                    liIn.appendChild(liInLeft);
+                                                    liIn.appendChild(liInLine);
+                                                    liIn.appendChild(num);
+                                                    li.appendChild(liIn);
+                                                    recommendList.appendChild(li);
+                                                });
+                                            })
+                                            .catch(error => console.error('更新数据出错：', error));
+                                    }
+
+                                    window.onload = function () {
+                                        updateData();  // 页面加载完成后，先执行一次数据更新，初始化页面
+                                        setInterval(updateData, 5000);  // 每隔5秒（5000毫秒）调用一次updateData函数来更新数据，可根据需求调整时间间隔
+                                    };
+                                </script>
                             </ul>
                         </div>
                     </div>
@@ -595,43 +598,43 @@
             </div>
             <div class="leftMain_middle_right">
                 <div class="leftMain_middle_rightIn">
-                    <h3>这里是标题</h3>
+                    <h3>完结撒花</h3>
                     <div class="biaoge biaoge_bi" style="width:100%; height:25vh">
                         <ul>
                             <li>
                                 <div class="liIn">
-                                    <p class="shu shu1">23</p>
-                                    <p class="zi">今日收益比例</p>
+                                    <p class="shu shu1">hqj</p>
+                                    <p class="zi">超级工程师</p>
                                 </div>
                             </li>
                             <li>
                                 <div class="liIn">
-                                    <p class="shu shu2">107</p>
-                                    <p class="zi">本月收益比例</p>
+                                    <p class="shu shu2">hzl</p>
+                                    <p class="zi">前端工程师</p>
                                 </div>
                             </li>
                             <li>
                                 <div class="liIn">
-                                    <p class="shu shu3">107</p>
-                                    <p class="zi">历史收益比例</p>
+                                    <p class="shu shu3">ldz</p>
+                                    <p class="zi">爬虫工程师</p>
                                 </div>
                             </li>
                             <li>
                                 <div class="liIn">
-                                    <p class="shu shu4">23</p>
-                                    <p class="zi">今日收益比例</p>
+                                    <p class="shu shu4">wml</p>
+                                    <p class="zi">数据分析师</p>
                                 </div>
                             </li>
                             <li>
                                 <div class="liIn">
-                                    <p class="shu shu5">23</p>
-                                    <p class="zi">本月收益比例</p>
+                                    <p class="shu shu5">曹如军</p>
+                                    <p class="zi">项目指导</p>
                                 </div>
                             </li>
                             <li>
                                 <div class="liIn">
-                                    <p class="shu shu6">23</p>
-                                    <p class="zi">历史收益比例</p>
+                                    <p class="shu shu6">致辞</p>
+                                    <p class="zi">幻梦绘世团</p>
                                 </div>
                             </li>
                         </ul>

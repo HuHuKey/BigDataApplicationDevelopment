@@ -25,17 +25,37 @@ def dashboard_view(request):
             'origin_jd': origin_jd
         }
         # print(origin_jd.to_json())
-        # 找到grossSales最大，price最低，commentCnt最多的对应的数据
+        # 找到grossSales、price、commentCnt最值
         gross_sale_max = max(sales_data, key=lambda x: x.grossSales)
         price_min = min(sales_data, key=lambda x: x.price)
         comment_cnt_max = max(sales_data, key=lambda x: x.commentCnt)
+        gross_sale_min = min(sales_data, key=lambda x: x.grossSales)
+        price_max = max(sales_data, key=lambda x: x.price)
+        comment_cnt_min = min(sales_data, key=lambda x: x.commentCnt)
         context['gross_sale_max'] = gross_sale_max
         context['price_min'] = price_min
         context['comment_cnt_max'] = comment_cnt_max
+        context['gross_sale_min'] = gross_sale_min
+        context['price_max'] = price_max
+        context['comment_cnt_min'] = comment_cnt_min
         # sales_data爬取的数据条数
         length = Jdnew.objects().count() + Tbnew.objects().count()
         context['length'] = length
-
+        # 得分统计
+        scored_data = []
+        for data in sales_data:
+            price_score = 100 - 40 * (data.price - price_min.price) / (price_max.price - price_min.price)
+            gross_sale_score = 100 - 40 * (data.grossSales - gross_sale_min.grossSales) / (
+                    gross_sale_max.grossSales - gross_sale_min.grossSales)
+            comment_cnt_score = 100 - 40 * (data.commentCnt - comment_cnt_min.commentCnt) / (
+                    comment_cnt_max.commentCnt - comment_cnt_min.commentCnt)
+            final_score = 0.2 * price_score + 0.2 * gross_sale_score + 0.6 * comment_cnt_score
+            scored_data.append((data, final_score))
+        scored_data.sort(key=lambda x: x[1], reverse=True)
+        top_six = []
+        for item in scored_data[:6]:
+            top_six.append({'name': item[0].name, 'score': item[1], 'href': item[0].href})
+        context['top_six'] = top_six
         # print(sales_data.to_json())
         # all_sales_data = SalesData.objects()
         # print("查询到的数据数量:", len(all_sales_data))  # 添加调试输出
@@ -55,8 +75,8 @@ def avgSale4pie(req):
                 }
             },
             {
-                '$sort': {
-                    'average_total_sales': 1
+                "$sort": {
+                    "_id": 1  # 按照_id（也就是crawlTime）进行降序排序，使得时间从近到远
                 }
             }
         ]
@@ -173,3 +193,9 @@ def data4line(req):
         res = Jdnew.objects().aggregate(pipeline)
         res = json.dumps(list(res))
         return HttpResponse(res, content_type='application/json;charset=utf8')
+
+
+@login_required
+def data4desc(req):
+    if req.method == 'POST':
+        total = Jdnew.objects().count() + Tbnew.objects().count()

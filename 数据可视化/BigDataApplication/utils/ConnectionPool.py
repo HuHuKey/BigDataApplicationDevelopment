@@ -2,7 +2,7 @@ from pymongo import MongoClient
 
 # 远程连接
 host = '25.tcp.cpolar.top'
-port = 10655
+port = 14419
 # 本地连接
 # host = 'localhost'
 # port = 27017
